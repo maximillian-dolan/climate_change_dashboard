@@ -14,7 +14,7 @@ import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 
 #import data
-fires = pd.read_csv('modis_2015_United_States.csv')
+fires = pd.read_csv('Documents/climate_change_dashboard/modis_2015_United_States.csv')
 fires_df = pd.DataFrame(fires)
 
 
