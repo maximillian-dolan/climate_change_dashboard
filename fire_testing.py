@@ -42,7 +42,6 @@ fires_df['acq_date'] = days
 #Set minimum confidence rating for whole USA map
 confident_fires = fires_df[fires_df['confidence']>=95]
 
-
 #Plot fires within whole USA
 fig, ax = plt.subplots(1,2,figsize=(20, 20), subplot_kw={"projection": ccrs.PlateCarree()})
 ax[0].add_feature(cfeature.STATES, zorder=3, linewidth=1.5, edgecolor='black')
