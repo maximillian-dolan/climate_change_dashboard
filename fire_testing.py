@@ -12,6 +12,8 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
+import geopandas as gpd
+from shapely.geometry import Point, Polygon
 
 #import data
 fires = pd.read_csv('Documents/climate_change_dashboard/modis_2015_United_States.csv')
@@ -38,6 +40,19 @@ for i in date_days:
 
 fires_df['acq_date'] = days
 
+# Create a GeoDataFrame from the DataFrame
+geometry = [Point(lon, lat) for lon, lat in zip(fires_df['longitude'], fires_df['latitude'])]
+gdf = gpd.GeoDataFrame(fires_df, geometry=geometry, crs="EPSG:4326")
+
+# Load the polygon representing California (you may need a GeoJSON file or another source)
+california_shapefile_path = '/Users/maxdolan/Documents/climate_change_dashboard/cb_2018_06_place_500k/cb_2018_06_place_500k.shp'
+california = gpd.read_file(california_shapefile_path)
+
+# Perform spatial join to filter points within California
+points_within_california = gpd.sjoin(gdf, california, how="inner", op='within')
+
+# Drop unnecessary columns after the join
+points_within_california = points_within_california.drop(columns=['index_right'])
 
 #Set minimum confidence rating for whole USA map
 confident_fires = fires_df[fires_df['confidence']>=95]

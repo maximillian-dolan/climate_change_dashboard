@@ -4,6 +4,7 @@ import plotly.express as px
 import os
 from datetime import datetime
 
+
 def home_page():
     st.header("Climate change dashboard")
     st.write("Description of the dashboard...")
@@ -89,9 +90,11 @@ def precipitation_page():
                                                 zoom=4,
                                                 title=f'Fire locations'  
                                                 ).data[0]
-                            )     
+                            )
+
 
             # Show
+
             st.plotly_chart(fig)
 
 
@@ -110,13 +113,13 @@ def fire_page():
     fire_month_counts['month names'] = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
     #Create fire locations plot
-
     fig_fire = px.scatter_mapbox(fire_df,
                             lat='latitude',
                             lon='longitude',
                             color_discrete_sequence=['red']*len(fire_df),
                             mapbox_style='open-street-map',
                             zoom=4,
+                            animation_frame = 'month',
                             title=f'Fire locations')
 
     #Create fire frequency chart
