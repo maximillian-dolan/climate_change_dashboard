@@ -73,6 +73,63 @@ def precipitation_page():
 def temperature_page():
     st.header("Temperature Data")
     st.write("data and visualizations")
+
+def fire_page():
+    st.header("Fire Occurence Data")
+    st.write("data and visualizations")
+
+    #import and prepare fire data
+    fire_df = pd.read_csv('./fire_data.csv')
+    fire_df = fire_df[fire_df['latitude'] < 42][fire_df['latitude']>33][fire_df['longitude']<-115]
+    fire_month_counts = pd.DataFrame(data = fire_df.value_counts(subset = 'month', sort = False))
+    fire_month_counts['month names'] = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
+    #Create fire locations plot
+    fire_chart = px.scatter_geo(data_frame = fire_df,
+                                lat = 'latitude',
+                                lon = 'longitude',
+                                locationmode = 'USA-states',
+                                opacity = fire_df['confidence'],
+                                scope = 'usa',
+                                animation_frame = 'month',
+                                fitbounds = 'locations',
+                                center = {'lat':37,'lon':-119},
+                                basemap_visible = True,
+                                color_discrete_sequence = ['red']*len(fire_df),
+                                hover_data = {'confidence':True, 'month':False})
+
+    fire_chart.update_layout(geo=dict(bgcolor='black'))
+
+    fig_fire = px.scatter_mapbox(fire_df,
+                            lat='latitude',
+                            lon='longitude',
+                            #size='precipitationCal' if data_type == 'daily' else 'precipitation',
+                            color=['red']*len(fire_df),
+                            color_continuous_scale=['red']*len(fire_df),
+                            #range_color=(0, color_scale_max),
+                            mapbox_style='open-street-map',
+                            zoom=4,
+                            title=f'Fire locations')
+
+    #Create fire frequency chart
+    fire_frequency_chart = px.bar(data_frame = fire_month_counts,
+                                    x = 'month names',
+                                    y = 'count',
+                                    hover_name = 'month names',
+                                    color_discrete_sequence = ['red']*12)
+    
+
+    #Create tabs for two plots
+    tab1, tab2 = st.tabs(['locations','frequency'])
+
+    with tab1:
+        st.plotly_chart(fig_fire)
+    
+    with tab2:
+        st.plotly_chart(fire_frequency_chart)
+
+
+
 # Main layout of the app
 def main():
 
@@ -89,7 +146,8 @@ def main():
         "Home": home_page,
         "Humidity": humidity_page,
         "Precipitation": precipitation_page,
-        "Temperature": temperature_page
+        "Temperature": temperature_page,
+        "Fire occurence": fire_page
         # Add other pages here
     }
 
