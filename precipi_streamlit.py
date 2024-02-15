@@ -11,12 +11,19 @@ def home_page():
 def humidity_page():
     st.header("Humidity Data")
     st.write("Humidity data and visualizations go here...")
+
 def precipitation_page():
     st.header("Precipitation Data")
     st.write("Explore precipitation data.")
 
     # daily or monthly data type
     data_type = st.radio("Select data type", ('daily', 'monthly'))
+
+    # checkbox to show fires
+    if data_type == 'daily':
+        show_fires = st.checkbox(label = 'Show Fire data')
+    else:
+        show_fires = False
 
     # set the folder path of csv file
     folder_path = f'./csv/{data_type}'
@@ -37,6 +44,11 @@ def precipitation_page():
         options=dates,
         format_func=lambda date: date.strftime('%Y-%m-%d' if data_type == 'daily' else '%Y-%m'),
     )
+
+    # import fire database and set to also filter by date slider
+    date_diff_format = str(selected_date)[:4] + '-' + str(selected_date)[5:7]+ '-' + str(selected_date)[8:10]
+    fire_df = pd.read_csv('./fire_data.csv')
+    fire_df2 = fire_df[fire_df['latitude'] < 42][fire_df['latitude']>33][fire_df['longitude']<-115][fire_df['acq_date'] == date_diff_format]
 
     # Select date
     if selected_date:
@@ -67,8 +79,21 @@ def precipitation_page():
                 title=f'Precipitation for {date_str}'
             )
 
+            # create fire plot            
+            if show_fires == True and data_type == 'daily':
+                fig.add_trace(px.scatter_mapbox(fire_df2,
+                                                lat='latitude',
+                                                lon='longitude',
+                                                color_discrete_sequence=['red']*len(fire_df2),
+                                                mapbox_style='open-street-map',
+                                                zoom=4,
+                                                title=f'Fire locations'  
+                                                ).data[0]
+                            )     
+
             # Show
             st.plotly_chart(fig)
+
 
 def temperature_page():
     st.header("Temperature Data")
@@ -85,28 +110,11 @@ def fire_page():
     fire_month_counts['month names'] = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
     #Create fire locations plot
-    fire_chart = px.scatter_geo(data_frame = fire_df,
-                                lat = 'latitude',
-                                lon = 'longitude',
-                                locationmode = 'USA-states',
-                                opacity = fire_df['confidence'],
-                                scope = 'usa',
-                                animation_frame = 'month',
-                                fitbounds = 'locations',
-                                center = {'lat':37,'lon':-119},
-                                basemap_visible = True,
-                                color_discrete_sequence = ['red']*len(fire_df),
-                                hover_data = {'confidence':True, 'month':False})
-
-    fire_chart.update_layout(geo=dict(bgcolor='black'))
 
     fig_fire = px.scatter_mapbox(fire_df,
                             lat='latitude',
                             lon='longitude',
-                            #size='precipitationCal' if data_type == 'daily' else 'precipitation',
-                            color=['red']*len(fire_df),
-                            color_continuous_scale=['red']*len(fire_df),
-                            #range_color=(0, color_scale_max),
+                            color_discrete_sequence=['red']*len(fire_df),
                             mapbox_style='open-street-map',
                             zoom=4,
                             title=f'Fire locations')
