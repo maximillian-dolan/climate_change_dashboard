@@ -57,11 +57,15 @@ points_within_california = points_within_california.drop(columns=['index_right']
 #Set minimum confidence rating for whole USA map
 confident_fires = fires_df[fires_df['confidence']>=95]
 
+
 #Plot fires within whole USA
 fig, ax = plt.subplots(1,2,figsize=(20, 20), subplot_kw={"projection": ccrs.PlateCarree()})
+
+'''
 ax[0].add_feature(cfeature.STATES, zorder=3, linewidth=1.5, edgecolor='black')
 ax[0].set_extent([-67, -130, 23, 50], crs=ccrs.PlateCarree())
 ax[0].scatter(confident_fires['longitude'],confident_fires['latitude'], s = 0.1, alpha = 0.5, c = confident_fires['acq_date'],cmap = 'hot')
+'''
 
 #Plot fires just within california
 california_fires = fires_df[fires_df['latitude'] < 42][fires_df['latitude']>33][fires_df['longitude']<-115]
@@ -71,7 +75,15 @@ ax[1].add_feature(cfeature.STATES, zorder=3, linewidth=1.5, edgecolor='black')
 ax[1].set_extent([-110, -130, 30, 45], crs=ccrs.PlateCarree())
 ax[1].scatter(california_fires['longitude'],california_fires['latitude'], s = 0.1, alpha = 0.5, c = california_fires['acq_date'],cmap = 'hot')
 plt.colorbar(confident_fires['acq_date'])
+
+fig, ax = plt.subplots(1,2,figsize=(20, 20), subplot_kw={"projection": ccrs.PlateCarree()})
+ax[0].add_feature(cfeature.STATES, zorder=3, linewidth=1.5, edgecolor='black')
+ax[0].set_extent([-67, -130, 23, 50], crs=ccrs.PlateCarree())
+ax[0].scatter(points_within_california['longitude'],points_within_california['latitude'], s = 0.1, alpha = 0.5, c = confident_fires['acq_date'],cmap = 'hot')
 plt.show()
+
+points_within_california
+
 
 
 

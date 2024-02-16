@@ -1,8 +1,17 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import plotly.express as px
 import os
 from datetime import datetime
+
+#importing fire data
+def fire_stringcut(a):
+    return a[5:7]
+
+fire_df = pd.read_csv('./modis_2015_United_States.csv')
+fire_df['month'] = fire_df['acq_date'].apply(fire_stringcut)
+fire_df['confidence'] = fire_df['confidence']/100
 
 
 def home_page():
@@ -46,10 +55,8 @@ def precipitation_page():
         format_func=lambda date: date.strftime('%Y-%m-%d' if data_type == 'daily' else '%Y-%m'),
     )
 
-    # import fire database and set to also filter by date slider
-    date_diff_format = str(selected_date)[:4] + '-' + str(selected_date)[5:7]+ '-' + str(selected_date)[8:10]
-    fire_df = pd.read_csv('./fire_data.csv')
-    fire_df2 = fire_df[fire_df['latitude'] < 42][fire_df['latitude']>33][fire_df['longitude']<-115][fire_df['acq_date'] == date_diff_format]
+    # filter by date slider and rough california boundaries
+    fire_df2 = fire_df[fire_df['latitude'] < 42][fire_df['latitude']>33][fire_df['longitude']<-115][fire_df['acq_date'] == str(selected_date)[:10] ]
 
     # Select date
     if selected_date:
@@ -80,7 +87,8 @@ def precipitation_page():
                 title=f'Precipitation for {date_str}'
             )
 
-            # create fire plot            
+            # create fire plot      
+                
             if show_fires == True and data_type == 'daily':
                 fig.add_trace(px.scatter_mapbox(fire_df2,
                                                 lat='latitude',
@@ -91,10 +99,9 @@ def precipitation_page():
                                                 title=f'Fire locations'  
                                                 ).data[0]
                             )
-
+            
 
             # Show
-
             st.plotly_chart(fig)
 
 
@@ -106,19 +113,22 @@ def fire_page():
     st.header("Fire Occurence Data")
     st.write("data and visualizations")
 
+    #tab1, tab2 = st.tabs(['locations','frequency'])
+
     #import and prepare fire data
-    fire_df = pd.read_csv('./fire_data.csv')
-    fire_df = fire_df[fire_df['latitude'] < 42][fire_df['latitude']>33][fire_df['longitude']<-115]
-    fire_month_counts = pd.DataFrame(data = fire_df.value_counts(subset = 'month', sort = False))
+    california_fire_data = fire_df[fire_df['latitude'] < 42][fire_df['latitude']>33][fire_df['longitude']<-115]
+    fire_month_counts = pd.DataFrame(data = california_fire_data.value_counts(subset = 'month', sort = False))
     fire_month_counts['month names'] = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
     #Create fire locations plot
-    fig_fire = px.scatter_mapbox(fire_df,
+    fig_fire = px.scatter_mapbox(california_fire_data,
                             lat='latitude',
                             lon='longitude',
                             color_discrete_sequence=['red']*len(fire_df),
                             mapbox_style='open-street-map',
                             zoom=4,
+                            hover_name = 'confidence',
+                            opacity = california_fire_data['confidence'],
                             animation_frame = 'month',
                             title=f'Fire locations')
 
@@ -135,6 +145,7 @@ def fire_page():
 
     with tab1:
         st.plotly_chart(fig_fire)
+        
     
     with tab2:
         st.plotly_chart(fire_frequency_chart)
