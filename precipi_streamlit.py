@@ -47,29 +47,30 @@ def precipitation_page():
     st.write("Explore precipitation data.")
 
     # daily or monthly data type
-    data_type = st.radio("Select data type", ('daily', 'monthly'))
+    precipitation_data_type = st.radio("Select data type", ('daily', 'monthly'))
 
     # checkbox to show fires  
     show_fires = st.checkbox(label = 'Show Fire data')
 
     # set the folder path of csv file
-    folder_path = f'./csv/{data_type}'
+    base_directory = "./precipitation_data"
+    precipitation_folder_path = f'./{base_directory}/.csv/{precipitation_data_type}'
 
     # get the list of file
-    file_pattern = '%Y-%m-%d' if data_type == 'daily' else '%Y-%m'
-    file_paths = [os.path.join(folder_path, f) for f in os.listdir(folder_path) if
-                  f.endswith('.csv') and datetime.strptime(f.split('.')[0], file_pattern)]
+    precipitation_file_pattern = '%Y-%m-%d' if precipitation_data_type == 'daily' else '%Y-%m'
+    precipitation_file_paths = [os.path.join(precipitation_folder_path, f) for f in os.listdir(precipitation_folder_path) if
+                  f.endswith('.csv') and datetime.strptime(f.split('.')[0], precipitation_file_pattern)]
 
     # Get the list of date
-    dates = [os.path.splitext(f)[0] for f in os.listdir(folder_path) if f.endswith('.csv')]
-    dates = [datetime.strptime(date, file_pattern) for date in dates]
-    dates.sort()
+    precipitation_dates = [os.path.splitext(f)[0] for f in os.listdir(precipitation_folder_path) if f.endswith('.csv')]
+    precipitation_dates = [datetime.strptime(date, precipitation_file_pattern) for date in precipitation_dates]
+    precipitation_dates.sort()
 
     # Create slider
     selected_date = st.select_slider(
         'Select a date',
-        options=dates,
-        format_func=lambda date: date.strftime('%Y-%m-%d' if data_type == 'daily' else '%Y-%m'),
+        options=precipitation_dates,
+        format_func=lambda date: date.strftime('%Y-%m-%d' if precipitation_data_type == 'daily' else '%Y-%m'),
     )
 
     # filter by date slider and rough california boundaries
@@ -78,42 +79,42 @@ def precipitation_page():
 
     # Select date
     if selected_date:
-        # define date_str and file_path
-        date_str = selected_date.strftime(file_pattern)
-        file_path = os.path.join(folder_path, f"{date_str}.csv")
+        # define date_str and precipitation_file_path
+        date_str = selected_date.strftime(precipitation_file_pattern)
+        precipitation_file_path = os.path.join(precipitation_folder_path, f"{date_str}.csv")
 
-        if os.path.exists(file_path):
+        if os.path.exists(precipitation_file_path):
             # Read csv file
-            daily_data = pd.read_csv(file_path)
+            precipitation_df = pd.read_csv(precipitation_file_path)
 
             # set the confidence level
-            confidence_level = 0.95
-            color_scale_max = daily_data['precipitationCal' if data_type == 'daily' else 'precipitation'].quantile(
-                confidence_level)
+            precipitation_confidence_level = 0.95
+            precipitation_color_scale_max = precipitation_df['precipitationCal' if precipitation_data_type == 'daily' else 'precipitation'].quantile(
+                precipitation_confidence_level)
 
             # Create map
-            fig = px.scatter_mapbox(
-                daily_data,
+            fig_precipitation = px.scatter_mapbox(
+                precipitation_df,
                 lat='lat',
                 lon='lon',
-                size='precipitationCal' if data_type == 'daily' else 'precipitation',
-                color='precipitationCal' if data_type == 'daily' else 'precipitation',
+                size='precipitationCal' if precipitation_data_type == 'daily' else 'precipitation',
+                color='precipitationCal' if precipitation_data_type == 'daily' else 'precipitation',
                 color_continuous_scale=px.colors.sequential.Viridis,
-                range_color=(0, color_scale_max),
+                range_color=(0.05, precipitation_color_scale_max),
                 mapbox_style='open-street-map',
                 zoom=4,
                 title=f'Precipitation for {date_str}'
             )
 
             # create fire plot                  
-            if data_type == 'daily':
+            if precipitation_data_type == 'daily':
                 fire_dataframe_date = fire_dataframe[fire_dataframe['acq_date'] == str(selected_date)[:10]]
-            elif data_type == 'monthly':
+            elif precipitation_data_type == 'monthly':
                 fire_dataframe_date = fire_dataframe[fire_dataframe['month'] == str(selected_date)[5:7]]
 
             if show_fires == True:
-                fire_dataframe_date = fire_dataframe[fire_dataframe['acq_date'] == str(selected_date)[:10]] if data_type == 'daily' else fire_dataframe[fire_dataframe['month'] == str(selected_date)[5:7]]
-                fig.add_trace(px.scatter_mapbox(fire_dataframe_date,
+                fire_dataframe_date = fire_dataframe[fire_dataframe['acq_date'] == str(selected_date)[:10]] if precipitation_data_type == 'daily' else fire_dataframe[fire_dataframe['month'] == str(selected_date)[5:7]]
+                fig_precipitation.add_trace(px.scatter_mapbox(fire_dataframe_date,
                                                 lat='latitude',
                                                 lon='longitude',
                                                 color_discrete_sequence=['red']*len(fire_dataframe_date),
@@ -124,7 +125,7 @@ def precipitation_page():
                             )
 
             # Show
-            st.plotly_chart(fig)
+            st.plotly_chart(fig_precipitation)
 
 
 def temperature_page():
