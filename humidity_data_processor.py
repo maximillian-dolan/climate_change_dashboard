@@ -5,12 +5,12 @@ import os
 import geopandas as gpd
 from shapely.geometry import mapping
 
-# Load the NetCDF file
-input_folder_path = './humidity/raw'
-output_folder_path = './humidity/processed/'
-california_boundary_file = "California_County_Boundaries.geojson"
+# Setup input and output directories
+input_folder_path = './humidity_data/raw_data/'
+output_folder_path = './humidity/processed_data/'
+california_boundary_file = 'California_County_Boundaries.geojson'
 
-nc4_files = [file for file in os.listdir(input_folder_path) if file.endswith('.nc4')]
+# Load California boundary geometry using geopandas
 california_gdf = gpd.read_file(california_boundary_file)
 
 # Function to clip data using California boundary
@@ -26,46 +26,38 @@ def clip_california_data(ds):
             del clipped_ds[var].attrs['grid_mapping']
     return clipped_ds
 
-humidity_datasets = {}
-humidity_dataframes = {}
+# Group files by date
+files_by_date = {}
+for nc4_file in os.listdir(input_folder_path):
+    if nc4_file.endswith('.nc4'):
+        # Extract date from filename
+        date_str = nc4_file.split('.')[1][1:9]
+        if date_str not in files_by_date:
+            files_by_date[date_str] = []
+        files_by_date[date_str].append(nc4_file)
 
-# Load datasets into dictionary, indexing my date
-for nc4_file in nc4_files:
-        
-    date = nc4_file.split('.')[1][1:]
-    ds = xr.open_dataset(os.path.join(input_folder_path, nc4_file))
+# Process files for each date
+for date_str, files in files_by_date.items():
+    daily_datasets = []
+    for file in files:
+        # Load the dataset
+        ds = xr.open_dataset(os.path.join(input_folder_path, file))
+        # Clip the dataset using the California boundary
+        clipped_ds = clip_california_data(ds)
+        daily_datasets.append(clipped_ds)
     
-    humidity_datasets[f'{date}'] = ds
-
-
-# Turn each dataset into a dataframe containing the data, latitude, longitude and humidity
-for date, ds in humidity_datasets.items():
+    # Combine datasets for the day and calculate daily mean
+    combined_ds = xr.concat(daily_datasets, dim='time')
+    daily_mean = combined_ds.mean(dim='time')
     
-    # Clip data using California boundary
-    clipped_ds = clip_california_data(ds)
-    print(f'{date} succesfully clipped')
-
-    # Access the 'Qair_f_inst' variable
-    specific_humidity_variable = clipped_ds['Qair_f_inst']
+    daily_mean_humidity = daily_mean['Qair_f_inst']
     
-    # Convert the variable to a pandas DataFrame
-    df = specific_humidity_variable.to_dataframe(name='Qair_f_inst')
+    # Convert to DataFrame
+    df = daily_mean_humidity.to_dataframe().reset_index()
     
-    # Turn lat,lon,date date (currently used as index) to columns
-    other_data = df.index.to_frame(index = True)   
-    df = pd.concat([df,other_data], axis = 1)
+    # Save to CSV
+    formatted_date = pd.to_datetime(date_str).strftime('%Y-%m-%d')
+    output_file = os.path.join(output_folder_path, f'{formatted_date}.csv')
+    df.to_csv(output_file, index=False)
     
-    # Add new index, ordering just by rows
-    df['index'] = np.arange(len(df))
-    df.set_index('index', inplace=True)
-    
-    # Format time to be date string instead of datetime object
-    df['time'] = df['time'].apply(str).apply(lambda x: x[:10])
-
-    
-    humidity[f'{date}'] = df
-
-# Save dataframes to processed folder 
-for date, df in humidity_dataframes.items():
-    date = date[:4] + '-' +  date[4:6] + '-' + date[6:]
-    df.to_csv(output_folder_path+date+'.csv')
+    print(f"Processed and saved data for {formatted_date}")
