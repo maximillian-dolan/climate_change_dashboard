@@ -40,8 +40,6 @@ def humidity_page():
     st.header("Humidity Data")
     st.write("Explore Humidity Data")
     
-    # Since there's no distinction between 'daily' and 'monthly' folders, 
-    # you might consider removing or repurposing this radio selection if it doesn't affect other logic.
     humidity_data_type = st.radio("Select Data Type", ('Daily'))
 
     # Checkbox to show fires  
@@ -49,7 +47,6 @@ def humidity_page():
     
     # Set the folder path of csv file to point directly to the processed data
     base_directory = "./humidity_data/processed_data"
-    # Since there are no separate folders for daily/monthly, use the base directory directly
     humidity_folder_path = base_directory
 
     # Get the list of dates from the file names
@@ -94,8 +91,7 @@ def humidity_page():
             )
 
             if show_fires:
-                # Ensure fire_dataframe is defined and properly loaded earlier in your script
-                fire_dataframe_date = fire_dataframe[fire_dataframe['acq_date'] == str(selected_date)[:10]]  # Assuming 'Daily' data
+                fire_dataframe_date = fire_dataframe[fire_dataframe['acq_date'] == str(selected_date)[:10]]
                 fig_humidity.add_trace(px.scatter_mapbox(
                     fire_dataframe_date,
                     lat='latitude',
