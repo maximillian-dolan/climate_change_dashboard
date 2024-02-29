@@ -40,22 +40,19 @@ def humidity_page():
     st.header("Humidity Data")
     st.write("Explore Humidity Data")
     
-    # daily or monthly data type
-    humidity_data_type = st.radio("Select Data Type", ('Daily', 'Monthly'))
+    # Since there's no distinction between 'daily' and 'monthly' folders, 
+    # you might consider removing or repurposing this radio selection if it doesn't affect other logic.
+    humidity_data_type = st.radio("Select Data Type", ('Daily'))
 
-    # checkbox to show fires  
-    show_fires = st.checkbox(label = 'Show Fire Data')
+    # Checkbox to show fires  
+    show_fires = st.checkbox(label='Show Fire Data')
     
-    # set the folder path of csv file
-    base_directory = "./humidity_data"
-    humidity_folder_path = f'{base_directory}/{humidity_data_type.lower()}'
+    # Set the folder path of csv file to point directly to the processed data
+    base_directory = "./humidity_data/processed_data"
+    # Since there are no separate folders for daily/monthly, use the base directory directly
+    humidity_folder_path = base_directory
 
-    #humidity_file_paths = [
-        #os.path.join(humidity_folder_path, f) for f in os.listdir(humidity_folder_path)
-        #if f.endswith('.csv')
-    #]
-
- # Get the list of dates from the file names
+    # Get the list of dates from the file names
     humidity_dates = [
         datetime.strptime(os.path.splitext(f)[0], '%Y-%m-%d') for f in os.listdir(humidity_folder_path) if f.endswith('.csv')
     ]
@@ -68,9 +65,9 @@ def humidity_page():
         format_func=lambda date: date.strftime('%Y-%m-%d')
     )
 
-    # filter by date slider
+    # Filter by date slider
     if selected_date:
-        # define date_str and humidity_file_path
+        # Define date_str and humidity_file_path
         date_str = selected_date.strftime('%Y-%m-%d')
         humidity_file_path = os.path.join(humidity_folder_path, f"{date_str}.csv")
 
@@ -78,7 +75,7 @@ def humidity_page():
             # Read csv file
             humidity_df = pd.read_csv(humidity_file_path)
 
-            # set the confidence level
+            # Set the confidence level
             humidity_confidence_level = 0.95
             humidity_color_scale_max = humidity_df['Q_air_f_inst'].quantile(humidity_confidence_level)
 
@@ -92,28 +89,27 @@ def humidity_page():
                 color_continuous_scale=px.colors.sequential.Viridis,
                 range_color=(humidity_df['Q_air_f_inst'].min(), humidity_color_scale_max),
                 mapbox_style='open-street-map',
-                zoom=5,  
+                zoom=5,
                 title=f'Humidity for {date_str}'
             )
 
             if show_fires:
-                fire_dataframe_date = fire_dataframe[fire_dataframe['acq_date'] == str(selected_date)[:10]] if humidity_data_type == 'Daily' else fire_dataframe[fire_dataframe['month'] == str(selected_date)[5:7]]
-                fig_humidity.add_trace(px.scatter_mapbox(fire_dataframe_date,
-                                             lat='latitude',
-                                             lon='longitude',
-                                             color_discrete_sequence=['red']*len(fire_dataframe_date),
-                                             mapbox_style='open-street-map',
-                                             zoom=4,  
-                                             title='Fire locations'
-                                             ).data[0]
-                                      
-                                      
-                                      )
+                # Ensure fire_dataframe is defined and properly loaded earlier in your script
+                fire_dataframe_date = fire_dataframe[fire_dataframe['acq_date'] == str(selected_date)[:10]]  # Assuming 'Daily' data
+                fig_humidity.add_trace(px.scatter_mapbox(
+                    fire_dataframe_date,
+                    lat='latitude',
+                    lon='longitude',
+                    color_discrete_sequence=['red'] * len(fire_dataframe_date),
+                    mapbox_style='open-street-map',
+                    zoom=4,
+                    title='Fire locations'
+                ).data[0])
 
-            
             st.plotly_chart(fig_humidity)
 
 humidity_page()
+
 
 def precipitation_page():
     st.header("Precipitation Data")
