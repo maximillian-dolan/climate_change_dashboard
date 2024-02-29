@@ -72,7 +72,13 @@ def humidity_page():
             # Read csv file
             humidity_df = pd.read_csv(humidity_file_path)
 
-            # Set the confidence level
+             # Calculate the mean of 'Qair_f_inst', excluding NaN values
+            qair_f_inst_mean = humidity_df['Qair_f_inst'].mean()
+
+    # Replace NaN values in 'Qair_f_inst' with the calculated mean
+            humidity_df['Qair_f_inst'] = humidity_df['Qair_f_inst'].fillna(qair_f_inst_mean)
+
+    # Set the confidence level
             humidity_confidence_level = 0.95
             humidity_color_scale_max = humidity_df['Qair_f_inst'].quantile(humidity_confidence_level)
 
@@ -86,7 +92,7 @@ def humidity_page():
                 color_continuous_scale=px.colors.sequential.Viridis,
                 range_color=(humidity_df['Qair_f_inst'].min(), humidity_color_scale_max),
                 mapbox_style='open-street-map',
-                zoom=5,
+                zoom=5,  
                 title=f'Humidity for {date_str}'
             )
 
