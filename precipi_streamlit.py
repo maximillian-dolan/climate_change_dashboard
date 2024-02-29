@@ -39,7 +39,7 @@ def home_page():
 def humidity_page():
     st.header("Humidity Data")
     st.write("Explore Humidity Data")
-    
+    """
     humidity_data_type = st.radio("Select Data Type", ('Daily',))
 
     # Checkbox to show fires  
@@ -111,7 +111,7 @@ def humidity_page():
             st.plotly_chart(fig_humidity)
 
 humidity_page()
-
+"""
 
 def precipitation_page():
     st.header("Precipitation Data")
