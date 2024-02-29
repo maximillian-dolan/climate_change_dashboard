@@ -41,7 +41,7 @@ def humidity_page():
     st.write("Explore Humidity Data")
     
     # daily or monthly data type
-    precipitation_data_type = st.radio("Select Data Type", ('Daily', 'Monthly'))
+    humidity_data_type = st.radio("Select Data Type", ('Daily', 'Monthly'))
 
     # checkbox to show fires  
     show_fires = st.checkbox(label = 'Show Fire Data')
@@ -96,16 +96,19 @@ def humidity_page():
                 title=f'Humidity for {date_str}'
             )
 
-            if show_fires == True:
-                fire_dataframe_date = fire_dataframe[fire_dataframe['acq_date'] == str(selected_date)[:10]] if precipitation_data_type.lower() == 'daily' else fire_dataframe[fire_dataframe['month'] == str(selected_date)[5:7]]
+            if show_fires:
+                fire_dataframe_date = fire_dataframe[fire_dataframe['acq_date'] == str(selected_date)[:10]] if humidity_data_type == 'Daily' else fire_dataframe[fire_dataframe['month'] == str(selected_date)[5:7]]
                 fig_humidity.add_trace(px.scatter_mapbox(fire_dataframe_date,
                                              lat='latitude',
                                              lon='longitude',
                                              color_discrete_sequence=['red']*len(fire_dataframe_date),
                                              mapbox_style='open-street-map',
-                                             zoom=4,
-                                             title=f'Fire locations'
-                                             ).data[0])
+                                             zoom=4,  
+                                             title='Fire locations'
+                                             ).data[0]
+                                      
+                                      
+                                      )
 
             
             st.plotly_chart(fig_humidity)
