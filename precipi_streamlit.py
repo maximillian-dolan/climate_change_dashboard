@@ -40,7 +40,7 @@ def humidity_page():
     st.header("Humidity Data")
     st.write("Explore Humidity Data")
     
-    humidity_data_type = st.radio("Select Data Type", ('Daily'))
+    humidity_data_type = st.radio("Select Data Type", ('Daily',))
 
     # Checkbox to show fires  
     show_fires = st.checkbox(label='Show Fire Data')
@@ -74,17 +74,17 @@ def humidity_page():
 
             # Set the confidence level
             humidity_confidence_level = 0.95
-            humidity_color_scale_max = humidity_df['Q_air_f_inst'].quantile(humidity_confidence_level)
+            humidity_color_scale_max = humidity_df['Qair_f_inst'].quantile(humidity_confidence_level)
 
             # Create map
             fig_humidity = px.scatter_mapbox(
                 humidity_df,
                 lat='lat',
                 lon='lon',
-                size='Q_air_f_inst',
-                color='Q_air_f_inst',
+                size='Qair_f_inst',
+                color='Qair_f_inst',
                 color_continuous_scale=px.colors.sequential.Viridis,
-                range_color=(humidity_df['Q_air_f_inst'].min(), humidity_color_scale_max),
+                range_color=(humidity_df['Qair_f_inst'].min(), humidity_color_scale_max),
                 mapbox_style='open-street-map',
                 zoom=5,
                 title=f'Humidity for {date_str}'
