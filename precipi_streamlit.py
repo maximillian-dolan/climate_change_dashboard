@@ -72,9 +72,6 @@ def humidity_page():
             # Read csv file
             humidity_df = pd.read_csv(humidity_file_path)
 
-    # Replace NaN values in 'Qair_f_inst' with the calculated mean
-            humidity_df['Qair_f_inst'] = humidity_df['Qair_f_inst'].fillna(0)
-
     # Set the confidence level
             humidity_confidence_level = 0.95
             humidity_color_scale_max = humidity_df['Qair_f_inst'].quantile(humidity_confidence_level)
