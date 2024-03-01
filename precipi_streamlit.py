@@ -8,8 +8,6 @@ from datetime import datetime
 
 
 # Importing fire data
-def fire_stringcut(a):
-    return a[5:7]
 
 # CSV file names
 fire_folder_path = './USA_fire_date_2010_2023'
@@ -26,7 +24,7 @@ for csv_file in csv_fire_files:
 
 # Format Dataframes
 for fire_df in fire_dataframes.values():
-    fire_df['month'] = fire_df['acq_date'].apply(fire_stringcut)
+    fire_df['month'] = fire_df['acq_date'].apply(lambda x: x[5:7])
     fire_df['confidence'] = fire_df['confidence']/100
     fire_df['year'] = fire_df['year'].apply(str)
 
@@ -40,11 +38,78 @@ def home_page():
 
 def humidity_page():
     st.header("Humidity Data")
-    st.write("Humidity data and visualizations go here...")
+    st.write("Explore Humidity Data")
+
+    humidity_data_type = st.radio("Select Data Type", ('Daily',))
+
+    # Checkbox to show fires  
+    show_fires = st.checkbox(label='Show Fire Data')
+    
+    # Set the folder path of csv file to point directly to the processed data
+    base_directory = "./humidity_data/processed_data"
+    humidity_folder_path = base_directory
+
+    # Get the list of dates from the file names
+    humidity_dates = [
+        datetime.strptime(os.path.splitext(f)[0], '%Y-%m-%d') for f in os.listdir(humidity_folder_path) if f.endswith('.csv')
+    ]
+    humidity_dates.sort()
+
+    # Create slider
+    selected_date = st.select_slider(
+        'Select a date',
+        options=humidity_dates,
+        format_func=lambda date: date.strftime('%Y-%m-%d')
+    )
+
+    # Filter by date slider
+    if selected_date:
+        # Define date_str and humidity_file_path
+        date_str = selected_date.strftime('%Y-%m-%d')
+        humidity_file_path = os.path.join(humidity_folder_path, f"{date_str}.csv")
+
+        if os.path.exists(humidity_file_path):
+            # Read csv file
+            humidity_df = pd.read_csv(humidity_file_path)
+
+    # Replace NaN values in 'Qair_f_inst' with the calculated mean
+            humidity_df['Qair_f_inst'] = humidity_df['Qair_f_inst'].fillna(0)
+
+    # Set the confidence level
+            humidity_confidence_level = 0.95
+            humidity_color_scale_max = humidity_df['Qair_f_inst'].quantile(humidity_confidence_level)
+
+            # Create map
+            fig_humidity = px.scatter_mapbox(
+                humidity_df,
+                lat='lat',
+                lon='lon',
+                size='Qair_f_inst',
+                color='Qair_f_inst',
+                color_continuous_scale=px.colors.sequential.Viridis,
+                range_color=(humidity_df['Qair_f_inst'].min(), humidity_color_scale_max),
+                mapbox_style='open-street-map',
+                zoom=5,  
+                title=f'Humidity for {date_str}'
+            )
+
+            if show_fires:
+                fire_dataframe_date = fire_dataframe[fire_dataframe['acq_date'] == str(selected_date)[:10]]
+                fig_humidity.add_trace(px.scatter_mapbox(
+                    fire_dataframe_date,
+                    lat='latitude',
+                    lon='longitude',
+                    color_discrete_sequence=['red'] * len(fire_dataframe_date),
+                    mapbox_style='open-street-map',
+                    zoom=4,
+                    title='Fire locations'
+                ).data[0])
+
+            st.plotly_chart(fig_humidity)
 
 def precipitation_page():
     st.header("Precipitation Data")
-    st.write("Explore precipitation data.")
+    st.write("Explore Precipitation Data.")
 
     # daily or monthly data type
     precipitation_data_type = st.radio("Select data type", ('daily', 'monthly'))
@@ -107,11 +172,7 @@ def precipitation_page():
             )
 
             # create fire plot                  
-            if precipitation_data_type == 'daily':
-                fire_dataframe_date = fire_dataframe[fire_dataframe['acq_date'] == str(selected_date)[:10]]
-            elif precipitation_data_type == 'monthly':
-                fire_dataframe_date = fire_dataframe[fire_dataframe['month'] == str(selected_date)[5:7]]
-
+ 
             if show_fires == True:
                 fire_dataframe_date = fire_dataframe[fire_dataframe['acq_date'] == str(selected_date)[:10]] if precipitation_data_type == 'daily' else fire_dataframe[fire_dataframe['month'] == str(selected_date)[5:7]]
                 fig_precipitation.add_trace(px.scatter_mapbox(fire_dataframe_date,
@@ -130,7 +191,60 @@ def precipitation_page():
 
 def temperature_page():
     st.header("Temperature Data")
-    st.write("data and visualizations")
+    st.write('Explore temperature data.')
+
+    temp_folder_path = './temperature_data/processed'
+    csv_temp_files = [file for file in os.listdir(temp_folder_path) if file.endswith('.csv')]
+
+    # Import Temperature data
+    temp_dataframes = {}
+    for csv_file in csv_temp_files:
+
+        date = csv_file.split('.')[0]
+        
+        temp_df = pd.read_csv(os.path.join(temp_folder_path, csv_file))
+        temp_df.dropna(inplace = True) # Drops all points not within California
+        temp_df['temperature'] = temp_df['AvgSurfT_tavg'] - 273.15 # Convert from kelvin to celsius
+        temp_dataframes[f'{date}'] = temp_df
+
+    temp_all_data = pd.concat(temp_dataframes, ignore_index=True)
+
+    # Choose date to display
+    temp_selected_date = st.select_slider('Select a date', options=sorted(temp_dataframes.keys(), key=lambda x:x.lower()))
+    
+    # checkbox to show fires  
+    show_fires = st.checkbox(label = 'Show Fire data')
+
+    fire_dataframe = fire_dataframes['2015'] # For now only 2015 temp data is used. If more data added, this will need to be changed
+    
+    # Create map  
+    fig_temperature = px.scatter_mapbox( temp_dataframes[temp_selected_date],
+                lat='lat',
+                lon='lon',
+                #size='temperature',
+                color='temperature',
+                color_continuous_scale=px.colors.sequential.thermal,
+                range_color=(min(temp_all_data['temperature']), max(temp_all_data['temperature'])),
+                mapbox_style='open-street-map',
+                zoom=3.7,
+                title=f'temperature for {2015}'
+                )
+    
+    # Add fire data 
+    if show_fires == True:
+        fire_dataframe_date = fire_dataframe[fire_dataframe['acq_date'] == temp_selected_date]
+        fig_temperature.add_trace(px.scatter_mapbox(fire_dataframe_date,
+                                                    lat='latitude',
+                                                    lon='longitude',
+                                                    color_discrete_sequence=['red']*len(fire_dataframe_date),
+                                                    mapbox_style='open-street-map',
+                                                    zoom=4,
+                                                    title=f'Fire locations'  
+                                                    ).data[0]
+                                 )
+
+    st.plotly_chart(fig_temperature)
+
 
 def fire_page():
     st.header("Fire Occurence Data")
@@ -220,7 +334,7 @@ def main():
         "Humidity": humidity_page,
         "Precipitation": precipitation_page,
         "Temperature": temperature_page,
-        "Fire occurence": fire_page
+        "Fire Occurence": fire_page
         # Add other pages here
     }
 
