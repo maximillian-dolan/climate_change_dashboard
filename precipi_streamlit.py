@@ -39,7 +39,7 @@ def home_page():
 def humidity_page():
     st.header("Humidity Data")
     st.write("Explore Humidity Data")
-    """
+
     humidity_data_type = st.radio("Select Data Type", ('Daily',))
 
     # Checkbox to show fires  
@@ -72,11 +72,8 @@ def humidity_page():
             # Read csv file
             humidity_df = pd.read_csv(humidity_file_path)
 
-             # Calculate the mean of 'Qair_f_inst', excluding NaN values
-            qair_f_inst_mean = humidity_df['Qair_f_inst'].mean()
-
     # Replace NaN values in 'Qair_f_inst' with the calculated mean
-            humidity_df['Qair_f_inst'] = humidity_df['Qair_f_inst'].fillna(qair_f_inst_mean)
+            humidity_df['Qair_f_inst'] = humidity_df['Qair_f_inst'].fillna(0)
 
     # Set the confidence level
             humidity_confidence_level = 0.95
@@ -109,9 +106,6 @@ def humidity_page():
                 ).data[0])
 
             st.plotly_chart(fig_humidity)
-
-humidity_page()
-"""
 
 def precipitation_page():
     st.header("Precipitation Data")
@@ -340,7 +334,7 @@ def main():
         "Humidity": humidity_page,
         "Precipitation": precipitation_page,
         "Temperature": temperature_page,
-        "Fire occurence": fire_page
+        "Fire Occurence": fire_page
         # Add other pages here
     }
 
