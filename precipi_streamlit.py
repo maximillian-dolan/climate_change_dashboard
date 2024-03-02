@@ -143,7 +143,7 @@ def temperature_page():
     temp_all_data = pd.concat(temp_dataframes, ignore_index=True)
 
     # Choose date to display
-    temp_selected_date = st.select_slider('Select a date', options=sorted(temp_dataframes.keys(), key=lambda x:x.lower()))
+    selected_date_temp = st.select_slider('Select a date', options=sorted(temp_dataframes.keys(), key=lambda x:x.lower()))
     
     # checkbox to show fires  
     show_fires = st.checkbox(label = 'Show Fire data')
@@ -151,7 +151,7 @@ def temperature_page():
     fire_dataframe = fire_dataframes['2015'] # For now only 2015 temp data is used. If more data added, this will need to be changed
     
     # Create map  
-    fig_temperature = px.scatter_mapbox( temp_dataframes[temp_selected_date],
+    fig_temperature = px.scatter_mapbox( temp_dataframes[selected_date_temp],
                 lat='lat',
                 lon='lon',
                 #size='temperature',
@@ -165,7 +165,7 @@ def temperature_page():
     
     # Add fire data 
     if show_fires == True:
-        fire_dataframe_date = fire_dataframe[fire_dataframe['acq_date'] == temp_selected_date]
+        fire_dataframe_date = fire_dataframe[fire_dataframe['acq_date'] == selected_date_temp]
         fig_temperature.add_trace(px.scatter_mapbox(fire_dataframe_date,
                                                     lat='latitude',
                                                     lon='longitude',
