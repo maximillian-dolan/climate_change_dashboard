@@ -104,6 +104,8 @@ def humidity_page():
                         zoom=4,
                         title='Fire locations'
                     ).data[0])
+                    
+        st.plotly_chart(fig_humidity)
 
 def precipitation_page():
     st.header("Precipitation Data")
