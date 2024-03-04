@@ -35,7 +35,7 @@ fire_all_data = pd.concat(fire_dataframes, ignore_index=True)
 def home_page():
     st.header("Climate change dashboard")
     st.write("Description of the dashboard...")
-"""
+
 def humidity_page():
     st.header("Humidity Data")
     st.write("Explore Humidity Data")
@@ -90,20 +90,21 @@ def humidity_page():
                 title=f'Humidity for {date_str}'
             )
 
-            if show_fires:
-                fire_dataframe_date = fire_dataframe[fire_dataframe['acq_date'] == str(selected_date)[:10]]
-                fig_humidity.add_trace(px.scatter_mapbox(
-                    fire_dataframe_date,
-                    lat='latitude',
-                    lon='longitude',
-                    color_discrete_sequence=['red'] * len(fire_dataframe_date),
-                    mapbox_style='open-street-map',
-                    zoom=4,
-                    title='Fire locations'
-                ).data[0])
+           if show_fires:
+                # Select the appropriate year's fire data
+                selected_year = str(selected_date)[:4]
+                if selected_year in fire_dataframes:
+                    fire_dataframe_date = fire_dataframes[selected_year][fire_dataframes[selected_year]['acq_date'] == str(selected_date)[:10]]
+                    fig_humidity.add_trace(px.scatter_mapbox(
+                        fire_dataframe_date,
+                        lat='latitude',
+                        lon='longitude',
+                        color_discrete_sequence=['red'] * len(fire_dataframe_date),
+                        mapbox_style='open-street-map',
+                        zoom=4,
+                        title='Fire locations'
+                    ).data[0])
 
-            st.plotly_chart(fig_humidity)
-"""
 def precipitation_page():
     st.header("Precipitation Data")
     st.write("Explore Precipitation Data.")
@@ -241,76 +242,6 @@ def temperature_page():
                                  )
 
     st.plotly_chart(fig_temperature)
-
-
-def humidity_page():
-    st.header("Humidity Data")
-    st.write("Explore Humidity Data")
-
-    humidity_data_type = st.radio("Select Data Type", ('Daily',))
-
-    # Checkbox to show fires  
-    show_fires = st.checkbox(label='Show Fire Data')
-    
-    # Set the folder path of csv file to point directly to the processed data
-    base_directory = "./humidity_data/processed_data"
-    humidity_folder_path = base_directory
-
-    # Get the list of dates from the file names
-    humidity_dates = [
-        datetime.strptime(os.path.splitext(f)[0], '%Y-%m-%d') for f in os.listdir(humidity_folder_path) if f.endswith('.csv')
-    ]
-    humidity_dates.sort()
-
-    # Create slider
-    selected_date = st.select_slider(
-        'Select a date',
-        options=humidity_dates,
-        format_func=lambda date: date.strftime('%Y-%m-%d')
-    )
-
-    # Filter by date slider
-    if selected_date:
-        # Define date_str and humidity_file_path
-        date_str = selected_date.strftime('%Y-%m-%d')
-        humidity_file_path = os.path.join(humidity_folder_path, f"{date_str}.csv")
-
-        if os.path.exists(humidity_file_path):
-            # Read csv file
-            humidity_df = pd.read_csv(humidity_file_path)
-
-    # Set the confidence level
-            humidity_confidence_level = 0.95
-            humidity_color_scale_max = humidity_df['Qair_f_inst'].quantile(humidity_confidence_level)
-
-            # Create map
-            fig_humidity = px.scatter_mapbox(
-                humidity_df,
-                lat='lat',
-                lon='lon',
-                size='Qair_f_inst',
-                color='Qair_f_inst',
-                color_continuous_scale=px.colors.sequential.Viridis,
-                range_color=(humidity_df['Qair_f_inst'].min(), humidity_color_scale_max),
-                mapbox_style='open-street-map',
-                zoom=5,  
-                title=f'Humidity for {date_str}'
-            )
-
-            if show_fires:
-                fire_dataframe_date = fire_dataframe[fire_dataframe['acq_date'] == str(selected_date)[:10]]
-                fig_humidity.add_trace(px.scatter_mapbox(
-                    fire_dataframe_date,
-                    lat='latitude',
-                    lon='longitude',
-                    color_discrete_sequence=['red'] * len(fire_dataframe_date),
-                    mapbox_style='open-street-map',
-                    zoom=4,
-                    title='Fire locations'
-                ).data[0])
-
-            st.plotly_chart(fig_humidity)
-
 
 def fire_page():
     st.header("Fire Occurence Data")
