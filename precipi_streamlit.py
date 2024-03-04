@@ -90,7 +90,7 @@ def humidity_page():
                 title=f'Humidity for {date_str}'
             )
 
-           if show_fires:
+        if show_fires:
                 # Select the appropriate year's fire data
                 selected_year = str(selected_date)[:4]
                 if selected_year in fire_dataframes:
