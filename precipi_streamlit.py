@@ -6,7 +6,17 @@ import os
 from datetime import datetime
 
 
+def lon_to_longitude(df):
+    '''
+    Simple function to add latitude and longitude columns if dataframe only contains columns labeled lon and lat
+    '''
+    if 'lon' in df.columns:
+        df['longitude'] = df['lon']
+    
+    if 'lat' in df.columns:
+        df['latitude'] = df['lat']
 
+#-------------------------------------------------------------------
 # Importing fire data
 
 # CSV file names
@@ -30,7 +40,55 @@ for fire_df in fire_dataframes.values():
 
 fire_all_data = pd.concat(fire_dataframes, ignore_index=True)
 
+# prepare fire frequency dataframes
+firecount_dataframes = {}
 
+for df in fire_dataframes:
+    specific_month_counts = pd.DataFrame(data = fire_dataframes[df].value_counts(subset = 'month', sort = False))
+    specific_month_counts['month names'] = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+    specific_month_counts['year'] = df
+    specific_month_counts['count'] = specific_month_counts['count']/len(fire_dataframes[df])
+
+    firecount_dataframes[df] = specific_month_counts
+
+all_fire_frequencies = pd.concat(firecount_dataframes, ignore_index=True)
+
+#-------------------------------------------------------------------
+# Import Temperature data
+
+temp_folder_path = './temperature_data/processed'
+csv_temp_files = [file for file in os.listdir(temp_folder_path) if file.endswith('.csv')]
+
+temp_dataframes = {}
+for csv_file in csv_temp_files:
+
+    date = csv_file.split('.')[0]
+        
+    temp_df = pd.read_csv(os.path.join(temp_folder_path, csv_file))
+    temp_df.dropna(inplace = True) # Drops all points not within California
+    temp_df['temperature'] = temp_df['AvgSurfT_tavg'] - 273.15 # Convert from kelvin to celsius
+    temp_dataframes[f'{date}'] = temp_df
+
+temp_all_data = pd.concat(temp_dataframes, ignore_index=True)
+
+#--------------------------------------------------------------------
+# Import precipitation data (for multivariable plot)
+
+precipitation_file_path_mv = "./precipitation_data/processed/daily_data"
+csv_precipitation_files_mv = [file for file in os.listdir(precipitation_file_path_mv) if file.endswith('.csv')]
+
+precip_dataframes_mv = {}
+
+for csv_file in csv_precipitation_files_mv:
+
+    data_precip_mv = csv_file.split('.')[4][:10]
+
+    precip_df_mv = pd.read_csv(os.path.join(precipitation_file_path_mv, csv_file))
+    precip_dataframes_mv[f'{date}'] = precip_df_mv
+
+
+#--------------------------------------------------------------------
+# Create pages
 
 def home_page():
     st.header("Climate change dashboard")
@@ -107,9 +165,11 @@ def humidity_page():
                     
         st.plotly_chart(fig_humidity)
 
+
 def precipitation_page():
     st.header("Precipitation Data")
     st.write("Explore Precipitation Data.")
+    
     # Line graph
     st.header("Monthly Precipitation Trends")
     precipitation_file_path = "precipitation_data/.csv/monthly_precipitation_summary.csv"
@@ -226,24 +286,7 @@ def temperature_page():
     st.header("Temperature Data")
     st.write('Explore temperature data.')
 
-    temp_folder_path = './temperature_data/processed'
-    csv_temp_files = [file for file in os.listdir(temp_folder_path) if file.endswith('.csv')]
-
-    # Import Temperature data
-    temp_dataframes = {}
-    for csv_file in csv_temp_files:
-
-        date = csv_file.split('.')[0]
-        
-        temp_df = pd.read_csv(os.path.join(temp_folder_path, csv_file))
-        temp_df.dropna(inplace = True) # Drops all points not within California
-        temp_df['temperature'] = temp_df['AvgSurfT_tavg'] - 273.15 # Convert from kelvin to celsius
-        temp_dataframes[f'{date}'] = temp_df
-
-    temp_all_data = pd.concat(temp_dataframes, ignore_index=True)
-
     # Choose date to display
-
     selected_date_temp = st.select_slider('Select a date', options=sorted(temp_dataframes.keys(), key=lambda x:x.lower()),key='fire_date_slider')
 
     
@@ -283,19 +326,6 @@ def temperature_page():
 def fire_page():
     st.header("Fire Occurence Data")
     st.write("data and visualizations")
-
-    # prepare fire frequency dataframes
-    firecount_dataframes = {}
-
-    for df in fire_dataframes:
-        specific_month_counts = pd.DataFrame(data = fire_dataframes[df].value_counts(subset = 'month', sort = False))
-        specific_month_counts['month names'] = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-        specific_month_counts['year'] = df
-        specific_month_counts['count'] = specific_month_counts['count']/len(fire_dataframes[df])
-
-        firecount_dataframes[df] = specific_month_counts
-
-    all_fire_frequencies = pd.concat(firecount_dataframes, ignore_index=True)
 
     #Create tabs for two plots
     tab1, tab2 = st.tabs(['locations','frequency'])
@@ -350,6 +380,17 @@ def fire_page():
         st.plotly_chart(fire_frequency_chart)
 
 
+def multivariable_graph():
+    
+    st.header('Multivariable visualisation')
+
+    data_options = ['precipitation','humidity','temperature']
+    col1, col2 = st.columns([0.75,0.25])
+
+    with col2:
+        color = st.selectbox(label = 'color', options = data_options)
+        size = st.selectbox(label = 'size', options = data_options)
+
 
 # Main layout of the app
 def main():
@@ -368,7 +409,8 @@ def main():
         "Humidity": humidity_page,
         "Precipitation": precipitation_page,
         "Temperature": temperature_page,
-        "Fire Occurence": fire_page
+        "Fire Occurence": fire_page,
+        "Multivariable graph" : multivariable_graph
         # Add other pages here
     }
 
