@@ -39,7 +39,7 @@ def home_page():
 def humidity_page():
     st.header("Humidity Data")
     st.write("Explore Humidity Data")
-    """
+
     humidity_data_type = st.radio("Select Data Type", ('Daily',))
 
     # Checkbox to show fires  
@@ -72,12 +72,6 @@ def humidity_page():
             # Read csv file
             humidity_df = pd.read_csv(humidity_file_path)
 
-             # Calculate the mean of 'Qair_f_inst', excluding NaN values
-            qair_f_inst_mean = humidity_df['Qair_f_inst'].mean()
-
-    # Replace NaN values in 'Qair_f_inst' with the calculated mean
-            humidity_df['Qair_f_inst'] = humidity_df['Qair_f_inst'].fillna(qair_f_inst_mean)
-
     # Set the confidence level
             humidity_confidence_level = 0.95
             humidity_color_scale_max = humidity_df['Qair_f_inst'].quantile(humidity_confidence_level)
@@ -96,22 +90,22 @@ def humidity_page():
                 title=f'Humidity for {date_str}'
             )
 
-            if show_fires:
-                fire_dataframe_date = fire_dataframe[fire_dataframe['acq_date'] == str(selected_date)[:10]]
-                fig_humidity.add_trace(px.scatter_mapbox(
-                    fire_dataframe_date,
-                    lat='latitude',
-                    lon='longitude',
-                    color_discrete_sequence=['red'] * len(fire_dataframe_date),
-                    mapbox_style='open-street-map',
-                    zoom=4,
-                    title='Fire locations'
-                ).data[0])
-
-            st.plotly_chart(fig_humidity)
-
-humidity_page()
-"""
+        if show_fires:
+                # Select the appropriate year's fire data
+                selected_year = str(selected_date)[:4]
+                if selected_year in fire_dataframes:
+                    fire_dataframe_date = fire_dataframes[selected_year][fire_dataframes[selected_year]['acq_date'] == str(selected_date)[:10]]
+                    fig_humidity.add_trace(px.scatter_mapbox(
+                        fire_dataframe_date,
+                        lat='latitude',
+                        lon='longitude',
+                        color_discrete_sequence=['red'] * len(fire_dataframe_date),
+                        mapbox_style='open-street-map',
+                        zoom=4,
+                        title='Fire locations'
+                    ).data[0])
+                    
+        st.plotly_chart(fig_humidity)
 
 def precipitation_page():
     st.header("Precipitation Data")
@@ -249,7 +243,9 @@ def temperature_page():
     temp_all_data = pd.concat(temp_dataframes, ignore_index=True)
 
     # Choose date to display
-    temp_selected_date = st.select_slider('Select a date', options=sorted(temp_dataframes.keys(), key=lambda x:x.lower()),key='fire_date_slider')
+
+    selected_date_temp = st.select_slider('Select a date', options=sorted(temp_dataframes.keys(), key=lambda x:x.lower()),key='fire_date_slider')
+
     
     # checkbox to show fires  
     show_fires = st.checkbox(label = 'Show Fire data')
@@ -257,7 +253,7 @@ def temperature_page():
     fire_dataframe = fire_dataframes['2015'] # For now only 2015 temp data is used. If more data added, this will need to be changed
     
     # Create map  
-    fig_temperature = px.scatter_mapbox( temp_dataframes[temp_selected_date],
+    fig_temperature = px.scatter_mapbox( temp_dataframes[selected_date_temp],
                 lat='lat',
                 lon='lon',
                 #size='temperature',
@@ -271,7 +267,7 @@ def temperature_page():
     
     # Add fire data 
     if show_fires == True:
-        fire_dataframe_date = fire_dataframe[fire_dataframe['acq_date'] == temp_selected_date]
+        fire_dataframe_date = fire_dataframe[fire_dataframe['acq_date'] == selected_date_temp]
         fig_temperature.add_trace(px.scatter_mapbox(fire_dataframe_date,
                                                     lat='latitude',
                                                     lon='longitude',
@@ -283,7 +279,6 @@ def temperature_page():
                                  )
 
     st.plotly_chart(fig_temperature)
-
 
 def fire_page():
     st.header("Fire Occurence Data")
@@ -373,7 +368,7 @@ def main():
         "Humidity": humidity_page,
         "Precipitation": precipitation_page,
         "Temperature": temperature_page,
-        "Fire occurence": fire_page
+        "Fire Occurence": fire_page
         # Add other pages here
     }
 
