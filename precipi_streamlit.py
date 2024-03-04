@@ -116,6 +116,13 @@ humidity_page()
 def precipitation_page():
     st.header("Precipitation Data")
     st.write("Explore Precipitation Data.")
+    # Line graph
+    st.header("Monthly Precipitation Trends")
+    precipitation_file_path = "precipitation_data/.csv/monthly_precipitation_summary.csv"
+    monthly_precipitation_df = pd.read_csv(precipitation_file_path)
+    fig_monthly = px.line(monthly_precipitation_df, x='Month', y='Total Precipitation')
+    fig_monthly.update_layout(yaxis_title='Total Precipitation', xaxis_title='Month')
+    st.plotly_chart(fig_monthly)
 
     # daily or monthly data type
     precipitation_data_type = st.radio("Select data type", ('daily', 'monthly'))
@@ -142,6 +149,7 @@ def precipitation_page():
         'Select a date',
         options=precipitation_dates,
         format_func=lambda date: date.strftime('%Y-%m-%d' if precipitation_data_type == 'daily' else '%Y-%m'),
+        key='precipitation_date_slider'
     )
 
     # filter by date slider and rough california boundaries
@@ -193,6 +201,31 @@ def precipitation_page():
 
             # Show
             st.plotly_chart(fig_precipitation)
+            # Download button
+            # Check file exists
+            if os.path.exists(precipitation_file_path):
+                # Read file
+                with open(precipitation_file_path, "rb") as file:
+                    btn = st.download_button(
+                        label="Download CSV",
+                        data=file,
+                        file_name=f"{date_str}.csv",
+                        mime="text/csv"
+                    )
+            else:
+                st.write("File not found.")
+            precipitation_plot_path = f'./{base_directory}/.plots/precipitation_{date_str}.png'
+            if os.path.exists(precipitation_plot_path):
+                # Read file
+                with open(precipitation_plot_path, "rb") as file:
+                    btn = st.download_button(
+                        label="Download Plot",
+                        data=file,
+                        file_name=f"precipitation_{date_str}.png",
+                        mime="image/png"
+                    )
+            else:
+                st.write("Plot not found.")
 
 
 def temperature_page():
@@ -216,7 +249,7 @@ def temperature_page():
     temp_all_data = pd.concat(temp_dataframes, ignore_index=True)
 
     # Choose date to display
-    temp_selected_date = st.select_slider('Select a date', options=sorted(temp_dataframes.keys(), key=lambda x:x.lower()))
+    temp_selected_date = st.select_slider('Select a date', options=sorted(temp_dataframes.keys(), key=lambda x:x.lower()),key='fire_date_slider')
     
     # checkbox to show fires  
     show_fires = st.checkbox(label = 'Show Fire data')
