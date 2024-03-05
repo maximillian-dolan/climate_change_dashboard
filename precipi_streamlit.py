@@ -16,6 +16,19 @@ def lon_to_longitude(df):
     if 'lat' in df.columns:
         df['latitude'] = df['lat']
 
+def mv_rounder(df, feature):
+    '''
+    Simple function to round latitude and longitude to nearest 0.5, and drop duplicates (averaging value in feature between duplicates).
+    Note that latitude and longitude columns must be named 'latitude' and 'longitude' not 'lat' and 'lon'.
+    '''
+
+    if ('latitude' and 'longitude') in df.columns:
+        df['longitude'] = df['longitude'].apply(lambda x: round(x))
+        df['latitude'] = df['latitude'].apply(lambda x: round(x))
+        df = df.groupby(['latitude', 'longitude']).agg({feature: 'mean'}).reset_index()
+        
+        return df
+
 #-------------------------------------------------------------------
 # Importing fire data
 
@@ -74,18 +87,28 @@ temp_all_data = pd.concat(temp_dataframes, ignore_index=True)
 #--------------------------------------------------------------------
 # Import precipitation data (for multivariable plot)
 
-precipitation_file_path_mv = "./precipitation_data/processed/daily_data"
-csv_precipitation_files_mv = [file for file in os.listdir(precipitation_file_path_mv) if file.endswith('.csv')]
+# set the folder path of csv file
+precipitation_base_directory_mv = "./precipitation_data"
+precipitation_folder_path_mv = f'./{precipitation_base_directory_mv}/.csv/daily'
 
-precip_dataframes_mv = {}
+# get the list of files
+precipitation_file_pattern_mv = '%Y-%m-%d'
+precipitation_file_paths_mv = [os.path.join(precipitation_folder_path_mv, f) for f in os.listdir(precipitation_folder_path_mv) if
+                  f.endswith('.csv') and datetime.strptime(f.split('.')[0], precipitation_file_pattern_mv)]
 
-for csv_file in csv_precipitation_files_mv:
+# Get the list of dates
+precipitation_dates_mv = [os.path.splitext(f)[0] for f in os.listdir(precipitation_folder_path_mv) if f.endswith('.csv')]
+precipitation_dates_mv = [datetime.strptime(date, precipitation_file_pattern_mv) for date in precipitation_dates_mv]
+precipitation_dates_mv.sort()
 
-    data_precip_mv = csv_file.split('.')[4][:10]
+#--------------------------------------------------------------------
+# Import humidity data (for multivariable plot)
 
-    precip_df_mv = pd.read_csv(os.path.join(precipitation_file_path_mv, csv_file))
-    precip_dataframes_mv[f'{date}'] = precip_df_mv
+humidity_folder_path_mv = "./humidity_data/processed_data"
 
+# get list of dates 
+humidity_dates_mv = [datetime.strptime(os.path.splitext(f)[0], '%Y-%m-%d') for f in os.listdir(humidity_folder_path_mv) if f.endswith('.csv')]
+humidity_dates_mv.sort()
 
 #--------------------------------------------------------------------
 # Create pages
@@ -212,6 +235,7 @@ def precipitation_page():
 
     # Select date
     if selected_date:
+
         # define date_str and precipitation_file_path
         date_str = selected_date.strftime(precipitation_file_pattern)
         precipitation_file_path = os.path.join(precipitation_folder_path, f"{date_str}.csv")
@@ -384,12 +408,85 @@ def multivariable_graph():
     
     st.header('Multivariable visualisation')
 
-    data_options = ['precipitation','humidity','temperature']
+    # Create slider
+    date_mv = st.select_slider('Select a date', options=sorted(temp_dataframes.keys(), key=lambda x:x.lower()), key='mv_slider')
+
+    data_options = []
     col1, col2 = st.columns([0.75,0.25])
 
+    # Add precipitation dataframe
+    precipitation_file_path_mv = os.path.join(precipitation_folder_path_mv, f"{date_mv}.csv")
+    if os.path.exists(precipitation_file_path_mv):
+        precipitation_df_mv = pd.read_csv(precipitation_file_path_mv)
+        lon_to_longitude(precipitation_df_mv)
+        precipitation_df_mv['precipitation'] = precipitation_df_mv['precipitationCal']
+        precipitation_df_mv = precipitation_df_mv[['latitude','longitude','precipitation']]
+        precipitation_df_mv = mv_rounder(precipitation_df_mv,'precipitation')
+
+        data_options.append('precipitation')
+
+    # Add humidity dataframe
+    humidity_file_path_mv= os.path.join(humidity_folder_path_mv, f"{date_mv}.csv")
+    if os.path.exists(humidity_file_path_mv):
+        humidity_df_mv = pd.read_csv(humidity_file_path_mv)
+        lon_to_longitude(humidity_df_mv)
+        humidity_df_mv = humidity_df_mv[humidity_df_mv['Qair_f_inst'] != 0]
+        humidity_df_mv['humidity'] = humidity_df_mv['Qair_f_inst']
+        humidity_df_mv = humidity_df_mv[['latitude','longitude','humidity']]
+        humidity_df_mv = mv_rounder(humidity_df_mv,'humidity')
+
+        data_options.append('humidity')
+        
+    # Add temperature dataframe
+    if date_mv in temp_dataframes:
+        temp_df_mv = temp_dataframes[date_mv]
+        lon_to_longitude(temp_df_mv)
+        temp_df_mv = temp_df_mv[['latitude','longitude','temperature']]
+        temp_df_mv = mv_rounder(temp_df_mv,'temperature')
+
+        data_options.append('temperature')
+
+    # Add fire dataframe
+    if date_mv[:4] in fire_dataframes:
+        fire_df_mv = fire_dataframes[date_mv[:4]]
+        fire_df_mv = fire_df_mv[fire_df_mv['acq_date'] == date_mv]
+        with col2:
+            show_fires_mv = st.checkbox(label = 'Show Fire data')   
+    else:
+        show_fires_mv = False
+    
+    # Merge dataframes into one dataframe
+    df_total_mv = pd.merge(humidity_df_mv, temp_df_mv, on=['latitude', 'longitude'])
+    df_total_mv = pd.merge(df_total_mv,precipitation_df_mv, on=['latitude', 'longitude'])
+
     with col2:
-        color = st.selectbox(label = 'color', options = data_options)
-        size = st.selectbox(label = 'size', options = data_options)
+        color_mv = st.selectbox(label = 'Color', options = data_options)
+        size_mv = st.selectbox(label = 'Size', options = data_options)
+
+    multivariable_fig = px.scatter_mapbox(df_total_mv,
+                                            lat='latitude',
+                                            lon='longitude',
+                                            size=size_mv,
+                                            hover_name = size_mv,
+                                            color=color_mv,
+                                            color_continuous_scale=px.colors.sequential.thermal,
+                                            #range_color=(min(temp_all_data['temperature']), max(temp_all_data['temperature'])),
+                                            mapbox_style='open-street-map',
+                                            zoom=3.7,
+                                            width = 500)
+    
+        # Add fire data 
+    if show_fires_mv == True:
+        multivariable_fig.add_trace(px.scatter_mapbox(fire_df_mv,
+                                                    lat='latitude',
+                                                    lon='longitude',
+                                                    color_discrete_sequence=['red']*len(fire_df_mv),
+                                                    mapbox_style='open-street-map',
+                                                    zoom=4,
+                                                    title=f'Fire locations'  
+                                                    ).data[0])
+    with col1:
+        st.plotly_chart(multivariable_fig)
 
 
 # Main layout of the app
