@@ -10,6 +10,8 @@ import rioxarray
 import geopandas as gpd
 from shapely.geometry import mapping
 import numpy as np
+from shapely.geometry import Point, Polygon
+
 nc_file_path = 'MERRA2_400.inst1_2d_lfo_Nx.20150801.nc4.nc4'
 
 # Check the path
@@ -80,30 +82,44 @@ def process_wind_data(file_list, save_directory, resolution='monthly'):
         for new_file in new_file_list_monthly:
             # Open the processed dataset
             data = xr.open_dataset(new_file)
-            #print(new_file)
+            
             # Select the wind data
             wind_dataset = data['SPEEDLML'].isel(time=0)
-            # Extract the time value
-            #cf_time_value = wind_dataset['time'].values
-            # Convert datetime and get datestr
-            #standard_datetime = date(cf_time_value.item())
-            #date_str = standard_datetime.strftime('%Y-%m')
-            #date_str = wind_dataset.RangeBeginningDate
-            # Assuming wind_dataset is your xarray Dataset
+            
+            # Convert date to date_str
+
             date_str = wind_dataset.time.dt.strftime('%Y-%m-%d').values
-
-
-            # Convert the first date to a string
-            #date_str = dates[0]
             
             # convert to csv
             df = data.to_dataframe()
-            df['SPEEDLML'] = df['SPEEDLML'].fillna(0)
+
+            # Drop NaN values
+            df.dropna(subset=['SPEEDLML'], inplace=True)
+
+            # Calculate the average wind speed
+            average_wind_speed = df.groupby(['lat', 'lon'])['SPEEDLML'].mean()
+            
+            df_avg_wind_speed = average_wind_speed.reset_index()
+            
+            
+            ####
+            geometry = [Point(lon, lat) for lon, lat in zip(df_avg_wind_speed['lat'], df_avg_wind_speed['lon'])]
+            gdf = gpd.GeoDataFrame(df_avg_wind_speed, geometry=geometry, crs="EPSG:4326")
+            california = gpd.read_file(california_boundary_file)
+
+            # Perform spatial join to filter points within California
+            points_within_california = gpd.sjoin(gdf, california, how="inner", op='within')
+
+            # Drop unnecessary columns after the join
+            points_within_california = points_within_california.drop(columns=['index_right'])
+            
+            
             path_csv = os.path.join(monthly_csv_directory, f'{date_str}.csv')
-            df.to_csv(path_csv)
+            df_avg_wind_speed.to_csv(path_csv)
             print(f'=== {date_str}.csv saved ===')
             # Create and save the plot
-            create_wind_plot(data, date_str)
+            create_wind_plot(df_avg_wind_speed, date_str)
+            
     elif resolution == 'daily':  # Process daily data
         for file in file_list:
             # Clip data using California boundary
@@ -125,14 +141,35 @@ def process_wind_data(file_list, save_directory, resolution='monthly'):
             # Get the date_str
             date_str = wind_dataset.time.dt.strftime('%Y-%m-%d').values
 
-            # convert to csv
+            # convert to dataframe
             df = data.to_dataframe()
-            df['SPEEDLML'] = df['SPEEDLML'].fillna(0)
-            path_csv = os.path.join(daily_csv_directory, f'{date_str}.csv')
-            df.to_csv(path_csv)
+            # Drop NaN values
+            df.dropna(subset=['SPEEDLML'], inplace=True)
+            
+            # Calculate the average wind speed
+            average_wind_speed = df.groupby(['lat', 'lon'])['SPEEDLML'].mean()
+            
+            df_avg_wind_speed = average_wind_speed.reset_index()
+            
+            
+            # Get points for California
+            geometry = [Point(lon, lat) for lon, lat in zip(df_avg_wind_speed['lat'], df_avg_wind_speed['lon'])]
+            gdf = gpd.GeoDataFrame(df_avg_wind_speed, geometry=geometry, crs="EPSG:4326")
+            california = gpd.read_file(california_boundary_file)
+
+            # Perform spatial join to filter points within California
+            points_within_california = gpd.sjoin(gdf, california, how="inner", op='within')
+
+            # Drop unnecessary columns after the join
+            points_within_california = points_within_california.drop(columns=['index_right'])
+            
+            
+            path_csv = os.path.join(monthly_csv_directory, f'{date_str}.csv')
+            df_avg_wind_speed.to_csv(path_csv)
             print(f'=== {date_str}.csv saved ===')
             # Create and save the plot
-            create_wind_plot(data, date_str)
+            create_wind_plot(df_avg_wind_speed, date_str)
+            
 
 
 # Function to clip data using California boundary
@@ -149,85 +186,24 @@ def clip_california_data(nc_file_path):
             del clipped_ds[var].attrs['grid_mapping']
     return clipped_ds
 
-# clipped_ds = clip_california_data(nc_file_path)
-# print(clipped_ds)
-# Access the wind component variables from the xarray dataset
-#ULML = clipped_ds['ULML']
-#VLML = clipped_ds['VLML']
-
-
-            
-#wind_speed = np.sqrt(ULML**2 + VLML**2)
-#wind_speed = clipped_ds['SPEEDLML']
-
-# Add the wind speed variable to the xarray dataset
-#clipped_ds['wind_speed'] = wind_speed
-
-# Compute the average wind speed along the time dimension
-#avg_wind_speed = clipped_ds['wind_speed'].mean(dim='time')
-
-
-# Plot the California boundary
-#fig, ax = plt.subplots(figsize=(10, 8))
-#california_gdf.plot(ax=ax, color='none', edgecolor='black')
-
-# Plot the average wind speed data on the same plot
-#im = avg_wind_speed.plot.imshow(ax=ax, cmap='viridis', add_colorbar=False)
-
-# Add colorbar
-#cbar = fig.colorbar(im, ax=ax, label='Wind Speed (m/s)')
-
-# Set title and labels
-#plt.title('Average Wind Speed in California')
-#plt.xlabel('Longitude')
-#plt.ylabel('Latitude')
-
-# Show the plot
-#plt.show()
-
-#def date(nc_file_path):
-    #date_text = data.RangeBeginningDate
-    
-    #return date_text
-
-#date_str = date(nc_file_path)
 
 
 # Define a function to create and save a wind plot
 def create_wind_plot(wind_dataset, date_str, extent=[-125, -113, 32, 42]):
-    # Compute the average wind speed along the time dimension
-    # print(wind_dataset)
-    wind_speed = wind_dataset['SPEEDLML']
-    avg_wind_speed = wind_speed.mean(dim='time')
-
-
-    # Plot the California boundary
-    fig, ax = plt.subplots(figsize=(10, 8))
-    california_gdf.plot(ax=ax, color='none', edgecolor='black')
-
-    # Plot the average wind speed data on the same plot
-    im = avg_wind_speed.plot.imshow(ax=ax, cmap='viridis', add_colorbar=False)
-
-    # Add colorbar
-    cbar = fig.colorbar(im, ax=ax, label='Wind Speed (m/s)')
+    # Create plot over California
+    fig, ax = plt.subplots(figsize=(10, 10), subplot_kw={"projection": ccrs.PlateCarree()})
+    ax.add_feature(cfeature.STATES, zorder=3, linewidth=1.5, edgecolor='black')
+    ax.set_extent([-110, -130, 30, 45], crs=ccrs.PlateCarree())
+    im = ax.scatter(wind_dataset['lon'], wind_dataset['lat'], s=20, alpha=0.5, c=wind_dataset['SPEEDLML'], cmap='magma')
+    
+    # Add a colourbar
+    cbar = plt.colorbar(im, ax=ax, label='Wind Speed (m/s)')
 
     # Set title and labels
     plt.title(f'Average wind speed on {date_str}')
     plt.xlabel('Longitude')
     plt.ylabel('Latitude')
 
-    # Show the plot
-    #plt.show()
-    
-    # Plot windspeed
-    #clevs = np.arange(0,14.5,1)
-    #plt.contourf(lon, lat, ws_daily_avg, clevs, transform=ccrs.PlateCarree(),cmap=plt.cm.jet)
-    
-    #cb = plt.colorbar(ax=ax, orientation="vertical", pad=0.02, aspect=16, shrink=0.8)
-    #cb.set_label('m/s',size=14,rotation=0,labelpad=15)
-    #cb.ax.tick_params(labelsize=10)
-    # Overlay wind vectors
-    #qv = plt.quiver(lon, lat, U10M_daily_avg, V10M_daily_avg, scale=420, color='k')
 
     # Save the file
     filename = f"{plots_directory}/wind_{date_str}.png"
@@ -243,3 +219,5 @@ process_wind_data(file_list_monthly, pro_monthly_data_directory, resolution='mon
 
 # Process daily wind data
 process_wind_data(file_list_daily, pro_daily_data_directory, resolution='daily')
+
+print("Success")
