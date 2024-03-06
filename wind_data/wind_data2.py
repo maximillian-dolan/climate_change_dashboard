@@ -108,7 +108,7 @@ def process_wind_data(file_list, save_directory, resolution='monthly'):
             california = gpd.read_file(california_boundary_file)
 
             # Perform spatial join to filter points within California
-            points_within_california = gpd.sjoin(gdf, california, how="inner", op='within')
+            points_within_california = gpd.sjoin(gdf, california, how="inner", predicate='within')
 
             # Drop unnecessary columns after the join
             points_within_california = points_within_california.drop(columns=['index_right'])
@@ -158,7 +158,7 @@ def process_wind_data(file_list, save_directory, resolution='monthly'):
             california = gpd.read_file(california_boundary_file)
 
             # Perform spatial join to filter points within California
-            points_within_california = gpd.sjoin(gdf, california, how="inner", op='within')
+            points_within_california = gpd.sjoin(gdf, california, how="inner", predicate='within')
 
             # Drop unnecessary columns after the join
             points_within_california = points_within_california.drop(columns=['index_right'])

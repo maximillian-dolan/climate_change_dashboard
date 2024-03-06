@@ -110,6 +110,24 @@ humidity_folder_path_mv = "./humidity_data/processed_data"
 humidity_dates_mv = [datetime.strptime(os.path.splitext(f)[0], '%Y-%m-%d') for f in os.listdir(humidity_folder_path_mv) if f.endswith('.csv')]
 humidity_dates_mv.sort()
 
+#-------------------------------------------------------------------
+# Import Wind data
+
+wind_folder_path = './wind_data/wind_data/csv/daily'
+csv_wind_files = [file for file in os.listdir(wind_folder_path) if file.endswith('.csv')]
+
+wind_dataframes = {}
+for csv_file in csv_wind_files:
+
+    date = csv_file.split('.')[0]
+        
+    wind_df = pd.read_csv(os.path.join(wind_folder_path, csv_file))
+    wind_df = wind_df[wind_df['SPEEDLML'] != 0] # Drops all points not within California
+    wind_df['wind_speed'] = wind_df['SPEEDLML'] 
+    wind_dataframes[f'{date}'] = wind_df
+
+wind_all_data = pd.concat(wind_dataframes, ignore_index=True)
+
 #--------------------------------------------------------------------
 # Create pages
 
@@ -403,6 +421,47 @@ def fire_page():
     with tab2:
         st.plotly_chart(fire_frequency_chart)
 
+        
+def wind_page():
+    st.header("Wind Data")
+    st.write('Explore wind data.')
+
+    # Choose date to display
+    selected_date_wind = st.select_slider('Select a date', options=sorted(wind_dataframes.keys(), key=lambda x:x.lower()),key='fire_date_slider')
+
+    
+    # checkbox to show fires  
+    show_fires = st.checkbox(label = 'Show Fire data')
+
+    fire_dataframe = fire_dataframes['2015'] # For now only 2015 temp data is used. If more data added, this will need to be changed
+    
+    # Create map  
+    fig_wind = px.scatter_mapbox( wind_dataframes[selected_date_wind],
+                lat='lat',
+                lon='lon',
+                color='wind_speed',
+                color_continuous_scale=px.colors.sequential.Viridis,
+                range_color=(min(wind_all_data['wind_speed']), max(wind_all_data['wind_speed'])),
+                mapbox_style='open-street-map',
+                zoom=3.7,
+                title=f'Average wind speed for {2015}'
+                )
+    
+    # Add fire data 
+    if show_fires == True:
+        fire_dataframe_date = fire_dataframe[fire_dataframe['acq_date'] == selected_date_wind]
+        fig_wind.add_trace(px.scatter_mapbox(fire_dataframe_date,
+                                                    lat='latitude',
+                                                    lon='longitude',
+                                                    color_discrete_sequence=['red']*len(fire_dataframe_date),
+                                                    mapbox_style='open-street-map',
+                                                    zoom=4,
+                                                    title=f'Fire locations'  
+                                                    ).data[0]
+                                 )
+
+    st.plotly_chart(fig_wind)
+
 
 def multivariable_graph():
     
@@ -424,6 +483,18 @@ def multivariable_graph():
         precipitation_df_mv = mv_rounder(precipitation_df_mv,'precipitation')
 
         data_options.append('precipitation')
+        
+    # Add wind speed dataframe    
+    wind_file_path_mv = os.path.join(wind_folder_path_mv, f"{date_mv}.csv")
+    if os.path.exists(wind_file_path_mv):
+        wind_df_mv = pd.read_csv(wind_file_path_mv)
+        lon_to_longitude(wind_df_mv)
+        wind_df_mv = wind_df_mv[wind_df_mv['wind_speed'] != 0]
+        wind_df_mv['wind_speed'] = wind_df_mv['wind_speed']
+        wind_df_mv = wind_df_mv[['latitude','longitude','wind_speed']]
+        wind_df_mv = mv_rounder(wind_df_mv,'wind_speed')
+
+        data_options.append('wind_speed')
 
     # Add humidity dataframe
     humidity_file_path_mv= os.path.join(humidity_folder_path_mv, f"{date_mv}.csv")
@@ -452,6 +523,7 @@ def multivariable_graph():
         fire_df_mv = fire_df_mv[fire_df_mv['acq_date'] == date_mv]
         with col2:
             show_fires_mv = st.checkbox(label = 'Show Fire data')   
+            
     else:
         show_fires_mv = False
     
@@ -506,6 +578,7 @@ def main():
         "Humidity": humidity_page,
         "Precipitation": precipitation_page,
         "Temperature": temperature_page,
+        "Wind Speed": wind_page,
         "Fire Occurence": fire_page,
         "Multivariable graph" : multivariable_graph
         # Add other pages here
