@@ -134,6 +134,109 @@ wind_all_data = pd.concat(wind_dataframes, ignore_index=True)
 def home_page():
     st.header("Climate change dashboard")
     st.write("Description of the dashboard...")
+    if 'current_page' not in st.session_state:
+        st.session_state['current_page'] = 'Home'
+    def create_precipitation_chart():
+        precipitation_file_path = "precipitation_data/.csv/monthly_precipitation_summary.csv"
+        precipitation_df = pd.read_csv(precipitation_file_path)
+        fig = px.line(precipitation_df, x='Month', y='Total Precipitation', title='Monthly Total Precipitation')
+        return fig
+
+    def create_humidity_chart():
+        humidity_data_path = './humidity_data/processed_data'
+        all_humidity_files = os.listdir(humidity_data_path)
+        dayly_humidity_sums = {}
+        for file_name in all_humidity_files:
+            try:
+                year_month_day = datetime.strptime(file_name.split(".")[0], "%Y-%m-%d")
+            except ValueError:
+                continue  # Skip files that don't match the date format
+            file_path = os.path.join(humidity_data_path, file_name)
+            humidity_df = pd.read_csv(file_path)
+            # Sum humidity for the month
+            date_key = year_month_day.strftime("%Y-%m-%d")
+            dayly_humidity_sums[date_key] = dayly_humidity_sums.get(date_key, 0) + humidity_df[
+                'Qair_f_inst'].sum()
+        # Create DataFrame for daily humidity sums
+        df_total_humidity_per_day = pd.DataFrame(list(dayly_humidity_sums.items()),
+                                              columns=['Date', 'Specific Humidity(kg/kg)'])
+        # create line graph
+        fig = px.line(df_total_humidity_per_day, x='Date', y='Specific Humidity(kg/kg)', title='Total Specific Humidity over Time')
+        return fig
+    def create_temperature_chart():
+        temperature_data_path = './temperature_data/processed'
+        all_temperature_files = os.listdir(temperature_data_path)
+        dayly_temperature_sums = {}
+        for file_name in all_temperature_files:
+            try:
+                year_month_day = datetime.strptime(file_name.split(".")[0], "%Y-%m-%d")
+            except ValueError:
+                continue  # Skip files that don't match the date format
+            file_path = os.path.join(temperature_data_path, file_name)
+            temperature_df = pd.read_csv(file_path)
+            # Sum humidity for the month
+            date_key = year_month_day.strftime("%Y-%m-%d")
+            dayly_temperature_sums[date_key] = dayly_temperature_sums.get(date_key, 0) + temperature_df[
+                'AvgSurfT_tavg'].sum()
+        # Create DataFrame for daily humidity sums
+        df_total_humidity_per_day = pd.DataFrame(list(dayly_temperature_sums.items()),
+                                              columns=['Date', 'AvgSurfT_tavg'])
+        # create line graph
+        fig = px.line(df_total_humidity_per_day, x='Date', y='AvgSurfT_tavg', title='Total Temperature over Time')
+        return fig
+
+    def create_fire_occurence_chart():
+        # Calculate the count of fires per month for each year
+        firecount_dataframes = {}
+
+        for df in fire_dataframes:
+            specific_month_counts = pd.DataFrame(data=fire_dataframes[df].value_counts(subset='month', sort=False))
+            specific_month_counts['month names'] = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
+                                                    'August', 'September', 'October', 'November', 'December']
+            specific_month_counts['year'] = df
+            specific_month_counts['count'] = specific_month_counts['count'] / len(fire_dataframes[df])
+
+            firecount_dataframes[df] = specific_month_counts
+
+        all_fire_frequencies = pd.concat(firecount_dataframes, ignore_index=True)
+        fire_frequency_chart = px.bar(data_frame=all_fire_frequencies,
+                                      x='month names',
+                                      y='count',
+                                      hover_name='month names',
+                                      animation_frame='year',
+                                      animation_group='month names',
+                                      range_y=[0, 0.7],
+                                      color_discrete_sequence=['red'] * len(all_fire_frequencies))
+        return fire_frequency_chart
+    charts = {
+        "Humidity": create_humidity_chart,
+        "Precipitation": create_precipitation_chart,
+        "Temperature": create_temperature_chart,
+        "Fire Occurence": create_fire_occurence_chart
+    }
+    # Save current page
+    if 'current_page' not in st.session_state:
+        st.session_state['current_page'] = 'home'
+
+    # mini chart
+    for index, (factor, chart_func) in enumerate(charts.items()):
+        col1, col2 = st.columns([3, 1])
+
+        with col1:
+            # Call the chart function to get the figure
+            fig = chart_func()
+            st.plotly_chart(fig)
+
+        with col2:
+            # Set the current_page in session_state to the factor's page
+            #st.session_state['current_page'] = factor
+            factor_page_link = f"pages/{factor.lower()}.py"  # Assume you have a Python script for each factor in the pages folder
+            st.page_link(page=factor_page_link, label=f"Go to {factor} details", icon="🏠")
+            # Rerun the app to move to the selected factor's page
+            #st.experimental_rerun()
+            #st.page_link(f"{factor}.py", label=f"{factor}", icon="🏠")
+    #Just for debug
+    st.write('Current page in session state:', st.session_state['current_page'])
 
 def humidity_page():
     st.header("Humidity Data")
@@ -483,8 +586,9 @@ def multivariable_graph():
         precipitation_df_mv = mv_rounder(precipitation_df_mv,'precipitation')
 
         data_options.append('precipitation')
-        
-    # Add wind speed dataframe    
+
+
+    # Add wind speed dataframe
     wind_file_path_mv = os.path.join(wind_folder_path_mv, f"{date_mv}.csv")
     if os.path.exists(wind_file_path_mv):
         wind_df_mv = pd.read_csv(wind_file_path_mv)
