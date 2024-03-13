@@ -589,12 +589,12 @@ def multivariable_graph():
 
 
     # Add wind speed dataframe
-    wind_file_path_mv = os.path.join(wind_folder_path_mv, f"{date_mv}.csv")
+    wind_file_path_mv = os.path.join(wind_folder_path, f"{date_mv}.csv")
     if os.path.exists(wind_file_path_mv):
         wind_df_mv = pd.read_csv(wind_file_path_mv)
         lon_to_longitude(wind_df_mv)
-        wind_df_mv = wind_df_mv[wind_df_mv['wind_speed'] != 0]
-        wind_df_mv['wind_speed'] = wind_df_mv['wind_speed']
+        wind_df_mv = wind_df_mv[wind_df_mv['SPEEDLML'] != 0]
+        wind_df_mv['wind_speed'] = wind_df_mv['SPEEDLML']
         wind_df_mv = wind_df_mv[['latitude','longitude','wind_speed']]
         wind_df_mv = mv_rounder(wind_df_mv,'wind_speed')
 
@@ -634,6 +634,7 @@ def multivariable_graph():
     # Merge dataframes into one dataframe
     df_total_mv = pd.merge(humidity_df_mv, temp_df_mv, on=['latitude', 'longitude'])
     df_total_mv = pd.merge(df_total_mv,precipitation_df_mv, on=['latitude', 'longitude'])
+    df_total_mv = pd.merge(df_total_mv,wind_df_mv, on=['latitude', 'longitude'])
 
     with col2:
         color_mv = st.selectbox(label = 'Color', options = data_options)
