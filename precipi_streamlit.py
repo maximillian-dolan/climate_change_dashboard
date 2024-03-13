@@ -43,7 +43,7 @@ for csv_file in csv_fire_files:
     year = int(csv_file.split('_')[2].split('.')[0])
     
     whole_fire_df = pd.read_csv(os.path.join(fire_folder_path, csv_file))
-    fire_dataframes[f'{year}'] = whole_fire_df[whole_fire_df['latitude'] < 42][whole_fire_df['latitude']>33][whole_fire_df['longitude']<-115]
+    fire_dataframes[f'{year}'] = whole_fire_df
 
 # Format Dataframes
 for fire_df in fire_dataframes.values():
@@ -360,7 +360,7 @@ def fire_page():
         fire_data_type = st.radio('select data type',('monthly','yearly'))
 
         if fire_data_type == 'monthly':
-            fire_year = st.select_slider('year', options = fire_dataframes.keys())
+            fire_year = st.select_slider('year', options = sorted(fire_dataframes.keys(), key=lambda x:x.lower()))
             fire_df_chosen = fire_dataframes[fire_year]
 
         if fire_data_type == 'monthly':
