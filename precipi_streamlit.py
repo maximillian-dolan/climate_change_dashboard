@@ -4,7 +4,7 @@ import numpy as np
 import plotly.express as px
 import os
 from datetime import datetime
-
+from PIL import Image
 
 def lon_to_longitude(df):
     '''
@@ -131,11 +131,55 @@ wind_all_data = pd.concat(wind_dataframes, ignore_index=True)
 #--------------------------------------------------------------------
 # Create pages
 
+# Function for resize the image
+def resize_image(image_path, target_height):
+    image = Image.open(image_path)
+    width, height = image.size
+    aspect_ratio = width / height
+    new_width = int(aspect_ratio * target_height)
+    resized_image = image.resize((new_width, target_height))
+    return resized_image
+
 def home_page():
+    # Add images
+
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        university_logo = "./image/bristol.png"
+        resized_university_logo = resize_image(university_logo, target_height=50)
+        st.image(resized_university_logo)
+    with col2:
+        st.write("")  # Empty column for spacing
+    with col3:
+        nasa_logo = "./image/NASA.png"
+        resized_nasa_logo = resize_image(nasa_logo, target_height=50)
+        st.image(resized_nasa_logo)
     st.header("Climate change dashboard")
     st.write("Description of the dashboard...")
     if 'current_page' not in st.session_state:
         st.session_state['current_page'] = 'Home'
+
+
+
+    factor_descriptions = {
+    "Humidity": {
+        "data_source": "NASA - NASA’s Integrated Multi-satellitE Retrievals for GPM (IMERG) ",
+        "trend_description": "The chart shows fluctuations in specific humidity over time, which can affect cloud formation and precipitation patterns, contributing to climate change impacts."
+    },
+    "Precipitation": {
+        "data_source": "NASA -",
+        "trend_description": "The chart displays monthly total precipitation, revealing changes in precipitation patterns that could lead to more extreme weather events like droughts and floods due to climate change."
+    },
+    "Temperature": {
+        "data_source": "NASA -",
+        "trend_description": "The chart illustrates the upward trend in average surface temperature over time, a direct consequence of climate change, which can cause sea level rise, melting glaciers, and ecosystem disruptions."
+    },
+    "Fire Occurence": {
+        "data_source": "NASA -",
+        "trend_description": "The chart shows the frequency of wildfires occurring each month, highlighting the increasing risk and occurrence of wildfires due to hotter temperatures and drier conditions caused by climate change."
+    }
+    }
+
     def create_precipitation_chart():
         precipitation_file_path = "precipitation_data/.csv/monthly_precipitation_summary.csv"
         precipitation_df = pd.read_csv(precipitation_file_path)
@@ -227,6 +271,7 @@ def home_page():
             fig = chart_func()
             st.plotly_chart(fig)
 
+
         with col2:
             # Set the current_page in session_state to the factor's page
             #st.session_state['current_page'] = factor
@@ -235,6 +280,9 @@ def home_page():
             # Rerun the app to move to the selected factor's page
             #st.experimental_rerun()
             #st.page_link(f"{factor}.py", label=f"{factor}", icon="🏠")
+        with st.container():
+            st.write(f"**Data Source:** {factor_descriptions[factor]['data_source']}")
+            st.write(f"**Trend Description:** {factor_descriptions[factor]['trend_description']}")
     #Just for debug
     st.write('Current page in session state:', st.session_state['current_page'])
 
@@ -587,7 +635,7 @@ def multivariable_graph():
 
         data_options.append('precipitation')
 
-
+    wind_folder_path_mv = './wind_data/wind_data/csv/daily'
     # Add wind speed dataframe
     wind_file_path_mv = os.path.join(wind_folder_path_mv, f"{date_mv}.csv")
     if os.path.exists(wind_file_path_mv):
