@@ -43,7 +43,7 @@ for csv_file in csv_fire_files:
     year = int(csv_file.split('_')[2].split('.')[0])
     
     whole_fire_df = pd.read_csv(os.path.join(fire_folder_path, csv_file))
-    fire_dataframes[f'{year}'] = whole_fire_df[whole_fire_df['latitude'] < 42][whole_fire_df['latitude']>33][whole_fire_df['longitude']<-115]
+    fire_dataframes[f'{year}'] = whole_fire_df
 
 # Format Dataframes
 for fire_df in fire_dataframes.values():
@@ -127,11 +127,8 @@ for csv_file in csv_wind_files:
     wind_dataframes[f'{date}'] = wind_df
 
 wind_all_data = pd.concat(wind_dataframes, ignore_index=True)
-
 #--------------------------------------------------------------------
-# Create pages
-
-# Function for resize the image
+# Adjusting the image size
 def resize_image(image_path, target_height):
     image = Image.open(image_path)
     width, height = image.size
@@ -139,18 +136,19 @@ def resize_image(image_path, target_height):
     new_width = int(aspect_ratio * target_height)
     resized_image = image.resize((new_width, target_height))
     return resized_image
+#--------------------------------------------------------------------
+# Create pages
 
 def home_page():
-    # Add images
-
+    # Add bristol logo and nasa logo
     col1, col2, col3 = st.columns(3)
     with col1:
         university_logo = "./image/bristol.png"
         resized_university_logo = resize_image(university_logo, target_height=50)
         st.image(resized_university_logo)
-    with col2:
-        st.write("")  # Empty column for spacing
     with col3:
+        st.write("")  # Empty column for spacing
+    with col2:
         nasa_logo = "./image/NASA.png"
         resized_nasa_logo = resize_image(nasa_logo, target_height=50)
         st.image(resized_nasa_logo)
@@ -159,11 +157,14 @@ def home_page():
     if 'current_page' not in st.session_state:
         st.session_state['current_page'] = 'Home'
 
-
+    st.markdown("""Welcome to the California Wildfire and Climate Data Exploration Dashboard. This comprehensive interactive tool enables users to delve into a wide range of environmental factors that affect the California region, including precipitation patterns, temperature variations, wind speed, and humidity levels. By integrating this data, the dashboard offers insights into how these diverse climate conditions can influence the frequency, intensity, and distribution of wildfires. Users can explore monthly and daily trends, compare different environmental factors side by side, and visualize the intricate relationships between climate variables and wildfire events at selected times. Dive deep into the data to uncover patterns, correlations, and trends that can help in understanding the complex dynamics of wildfires in California.
+    """)
+    if 'current_page' not in st.session_state:
+        st.session_state['current_page'] = 'Home'
 
     factor_descriptions = {
     "Humidity": {
-        "data_source": "NASA - NASA’s Integrated Multi-satellitE Retrievals for GPM (IMERG) ",
+        "data_source": "NASA -",
         "trend_description": "The chart shows fluctuations in specific humidity over time, which can affect cloud formation and precipitation patterns, contributing to climate change impacts."
     },
     "Precipitation": {
@@ -273,9 +274,7 @@ def home_page():
 
 
         with col2:
-            # Set the current_page in session_state to the factor's page
-            #st.session_state['current_page'] = factor
-            factor_page_link = f"pages/{factor.lower()}.py"  # Assume you have a Python script for each factor in the pages folder
+            factor_page_link = f"pages/{factor.lower()}.py"
             st.page_link(page=factor_page_link, label=f"Go to {factor} details", icon="🏠")
             # Rerun the app to move to the selected factor's page
             #st.experimental_rerun()
@@ -361,7 +360,13 @@ def humidity_page():
 def precipitation_page():
     st.header("Precipitation Data")
     st.write("Explore Precipitation Data.")
-    
+    st.markdown("""
+        ## Why is Precipitation Data Important?
+        Precipitation is a key natural phenomenon essential for agriculture, water resource management, and the prevention of natural disasters. In California, variations in precipitation patterns are crucial for understanding and preventing natural disasters like forest fires. Prolonged droughts or insufficient rainfall lead to dry vegetation, increasing the risk and intensity of wildfires. Conversely, adequate rainfall helps maintain vegetation moisture, reducing the occurrence of fires.
+
+        ## How Does Precipitation Influence Wildfires?
+        The rainy season in California plays a critical role in the ecological cycle, promoting vigorous vegetation growth that enriches the ecosystem. However, this abundance of growth also leads to an accumulation of potential fuel for wildfires. Post-rainy season, dead and decaying vegetation can dry out rapidly under the hot, arid conditions typical of California's climate, significantly increasing the risk of wildfires. This paradox highlights the complex relationship between precipitation, vegetation growth, and wildfire dynamics, underscoring the importance of integrated climate and wildfire management strategies.
+        """)
     # Line graph
     st.header("Monthly Precipitation Trends")
     precipitation_file_path = "precipitation_data/.csv/monthly_precipitation_summary.csv"
@@ -419,17 +424,17 @@ def precipitation_page():
                 precipitation_confidence_level)
 
             # Create map
-            fig_precipitation = px.scatter_mapbox(
+
+            fig_precipitation = px.density_mapbox(
                 precipitation_df,
                 lat='lat',
                 lon='lon',
-                size='precipitationCal' if precipitation_data_type == 'daily' else 'precipitation',
-                color='precipitationCal' if precipitation_data_type == 'daily' else 'precipitation',
+                z='precipitationCal' if precipitation_data_type == 'daily' else 'precipitation',
+                radius=10,
                 color_continuous_scale=px.colors.sequential.Viridis,
-                range_color=(0.05, precipitation_color_scale_max),
                 mapbox_style='open-street-map',
                 zoom=4,
-                title=f'Precipitation for {date_str}'
+                title=f'Precipitation Heatmap for {date_str}'
             )
 
             # create fire plot                  
@@ -474,7 +479,20 @@ def precipitation_page():
             else:
                 st.write("Plot not found.")
 
-
+            """
+            fig_precipitation = px.scatter_mapbox(
+                precipitation_df,
+                lat='lat',
+                lon='lon',
+                size='precipitationCal' if precipitation_data_type == 'daily' else 'precipitation',
+                color='precipitationCal' if precipitation_data_type == 'daily' else 'precipitation',
+                color_continuous_scale=px.colors.sequential.Viridis,
+                range_color=(0.05, precipitation_color_scale_max),
+                mapbox_style='open-street-map',
+                zoom=4,
+                title=f'Precipitation for {date_str}'
+            )
+"""
 def temperature_page():
     st.header("Temperature Data")
     st.write('Explore temperature data.')
@@ -529,7 +547,7 @@ def fire_page():
         fire_data_type = st.radio('select data type',('monthly','yearly'))
 
         if fire_data_type == 'monthly':
-            fire_year = st.select_slider('year', options = fire_dataframes.keys())
+            fire_year = st.select_slider('year', options = sorted(fire_dataframes.keys(), key=lambda x:x.lower()))
             fire_df_chosen = fire_dataframes[fire_year]
 
         if fire_data_type == 'monthly':
@@ -635,14 +653,14 @@ def multivariable_graph():
 
         data_options.append('precipitation')
 
-    wind_folder_path_mv = './wind_data/wind_data/csv/daily'
+
     # Add wind speed dataframe
-    wind_file_path_mv = os.path.join(wind_folder_path_mv, f"{date_mv}.csv")
+    wind_file_path_mv = os.path.join(wind_folder_path, f"{date_mv}.csv")
     if os.path.exists(wind_file_path_mv):
         wind_df_mv = pd.read_csv(wind_file_path_mv)
         lon_to_longitude(wind_df_mv)
-        wind_df_mv = wind_df_mv[wind_df_mv['wind_speed'] != 0]
-        wind_df_mv['wind_speed'] = wind_df_mv['wind_speed']
+        wind_df_mv = wind_df_mv[wind_df_mv['SPEEDLML'] != 0]
+        wind_df_mv['wind_speed'] = wind_df_mv['SPEEDLML']
         wind_df_mv = wind_df_mv[['latitude','longitude','wind_speed']]
         wind_df_mv = mv_rounder(wind_df_mv,'wind_speed')
 
@@ -682,6 +700,7 @@ def multivariable_graph():
     # Merge dataframes into one dataframe
     df_total_mv = pd.merge(humidity_df_mv, temp_df_mv, on=['latitude', 'longitude'])
     df_total_mv = pd.merge(df_total_mv,precipitation_df_mv, on=['latitude', 'longitude'])
+    df_total_mv = pd.merge(df_total_mv,wind_df_mv, on=['latitude', 'longitude'])
 
     with col2:
         color_mv = st.selectbox(label = 'Color', options = data_options)
