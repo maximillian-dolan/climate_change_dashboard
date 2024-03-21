@@ -208,10 +208,12 @@ def home_page():
         # create line graph
         fig = px.line(df_total_humidity_per_day, x='Date', y='Specific Humidity(kg/kg)', title='Total Specific Humidity over Time')
         return fig
+    
     def create_temperature_chart():
         temperature_data_path = './temperature_data/processed'
         all_temperature_files = os.listdir(temperature_data_path)
         dayly_temperature_sums = {}
+
         for file_name in all_temperature_files:
             try:
                 year_month_day = datetime.strptime(file_name.split(".")[0], "%Y-%m-%d")
@@ -340,6 +342,7 @@ def humidity_page():
             )
 
         if show_fires:
+                
                 # Select the appropriate year's fire data
                 selected_year = str(selected_date)[:4]
                 if selected_year in fire_dataframes:
@@ -497,49 +500,73 @@ def temperature_page():
     st.header("Temperature Data")
     st.write('Explore temperature data.')
 
-    # Choose date to display
-    selected_date_temp = st.select_slider('Select a date', options=sorted(temp_dataframes.keys(), key=lambda x:x.lower()),key='fire_date_slider')
+    # Create daily average dataframe
+    temp_daily_average = pd.DataFrame(data = {'date':sorted(temp_dataframes.keys(), key=lambda x:x.lower()), 'average temperature':np.zeros(len(temp_dataframes))})
 
-    
-    # checkbox to show fires  
-    show_fires = st.checkbox(label = 'Show Fire data')
+    for index, row in temp_daily_average.iterrows():
+        temp_df = temp_dataframes[temp_daily_average['date'][index]]
+        temp_daily_average['average temperature'][index] = np.mean(temp_df['temperature'])
 
-    fire_dataframe = fire_dataframes['2015'] # For now only 2015 temp data is used. If more data added, this will need to be changed
-    
-    # Create map  
-    fig_temperature = px.scatter_mapbox( temp_dataframes[selected_date_temp],
-                lat='lat',
-                lon='lon',
-                #size='temperature',
-                color='temperature',
-                color_continuous_scale=px.colors.sequential.thermal,
-                range_color=(min(temp_all_data['temperature']), max(temp_all_data['temperature'])),
-                mapbox_style='open-street-map',
-                zoom=3.7,
-                title=f'temperature for {2015}'
-                )
-    
-    # Add fire data 
-    if show_fires == True:
-        fire_dataframe_date = fire_dataframe[fire_dataframe['acq_date'] == selected_date_temp]
-        fig_temperature.add_trace(px.scatter_mapbox(fire_dataframe_date,
-                                                    lat='latitude',
-                                                    lon='longitude',
-                                                    color_discrete_sequence=['red']*len(fire_dataframe_date),
-                                                    mapbox_style='open-street-map',
-                                                    zoom=4,
-                                                    title=f'Fire locations'  
-                                                    ).data[0]
-                                 )
 
-    st.plotly_chart(fig_temperature)
+    # Create page tabs
+    tab1,tab2,tab3 = st.tabs(['chart','stats','information'])
+
+    with tab1:
+        # Choose date to display
+        selected_date_temp = st.select_slider('Select a date', options=sorted(temp_dataframes.keys(), key=lambda x:x.lower()),key='fire_date_slider')
+        
+        # checkbox to show fires  
+        show_fires = st.checkbox(label = 'Show Fire data')
+
+        fire_dataframe = fire_dataframes['2015'] # For now only 2015 temp data is used. If more data added, this will need to be changed
+        
+        # Create map  
+        fig_temperature = px.scatter_mapbox( temp_dataframes[selected_date_temp],
+                    lat='lat',
+                    lon='lon',
+                    #size='temperature',
+                    #z = 'temperature',
+                    color='temperature',
+                    color_continuous_scale=px.colors.sequential.thermal,
+                    range_color=(min(temp_all_data['temperature']), max(temp_all_data['temperature'])),
+                    mapbox_style='open-street-map',
+                    zoom=3.7,
+                    title=f'temperature for {2015}'
+                    )
+        
+        # Add fire data 
+        if show_fires == True:
+            fire_dataframe_date = fire_dataframe[fire_dataframe['acq_date'] == selected_date_temp]
+            fig_temperature.add_trace(px.scatter_mapbox(fire_dataframe_date,
+                                                        lat='latitude',
+                                                        lon='longitude',
+                                                        color_discrete_sequence=['red']*len(fire_dataframe_date),
+                                                        mapbox_style='open-street-map',
+                                                        zoom=4,
+                                                        title=f'Fire locations'  
+                                                        ).data[0]
+                                    )
+
+        st.plotly_chart(fig_temperature)
+   
+    with tab2:
+        temp_line = px.line(temp_daily_average, x='date', y='average temperature')
+        temp_line.update_layout(yaxis_title='average temperature (celsius)', xaxis_title = '')
+        st.plotly_chart(temp_line)
+
+    with tab3:
+        st.markdown("""
+        ## Why is Temperature Data Important?
+        Temperature is a key component of fire weather conditions. High temperatures can increase the likelihood and intensity of wildfires by drying out vegetation, making it more susceptible to ignition and rapid spread. Understanding temperature patterns helps forecasters and firefighters anticipate periods of heightened fire danger.
+        """)
+
 
 def fire_page():
     st.header("Fire Occurence Data")
     st.write("data and visualizations")
 
     #Create tabs for two plots
-    tab1, tab2 = st.tabs(['locations','frequency'])
+    tab1, tab2, tab3 = st.tabs(['locations','frequency', 'information'])
 
     #Create fire locations plot
     with tab1:
@@ -589,6 +616,14 @@ def fire_page():
 
     with tab2:
         st.plotly_chart(fire_frequency_chart)
+    
+    with tab3:
+        st.markdown("""
+                    
+        ## Why do we track wildfires?
+        Tracking Wildfire ocurrence is not only important actively for locating and fighting fire, but archiving the data helps to identify trends and at-risk areas. It also serves as a demonstration as to how climate change is affecting them.
+                    
+        """)
 
         
 def wind_page():
