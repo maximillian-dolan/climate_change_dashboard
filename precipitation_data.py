@@ -25,7 +25,6 @@ pro_daily_data_directory = os.path.join(base_directory, "processed", "daily_data
 
 california_boundary_file = "California_County_Boundaries.geojson"
 
-
 # Make sure directories exist
 os.makedirs(plots_directory, exist_ok=True)
 os.makedirs(csv_directory, exist_ok=True)
@@ -49,7 +48,7 @@ def convert_cftime_datetime(cf_datetime):
 
 
 # Define a function to create and save a precipitation plot with specified settings
-def create_precipitation_plot(precipitation_dataset, date_str, extent=[-124.3, -114.8, 32.30, 42]):
+def create_precipitation_plot(precipitation_dataset, date_str, extent=[-124.4, -114, 32.30, 42]):
     fig = plt.figure(figsize=(10, 8))
     ax = plt.axes(projection=ccrs.PlateCarree())
     ax.set_extent(extent, crs=ccrs.PlateCarree())
@@ -93,13 +92,11 @@ def process_precipitation_data(file_list, save_directory, resolution='monthly'):
             df['precipitation'] = df['precipitation'].fillna(0)
             path_csv = os.path.join(monthly_csv_directory, f'{date_str}.csv')
             df.to_csv(path_csv)
-
+            print(f'=== {date_str}.csv saved ===')
             # Create and save the plot
             create_precipitation_plot(precipitation_dataset, date_str)
     elif resolution == 'daily':  # Process daily data
         for file in file_list:
-
-
             # Clip data using California boundary
             clipped_ds = clip_california_data(file)
 
@@ -124,9 +121,10 @@ def process_precipitation_data(file_list, save_directory, resolution='monthly'):
             df['precipitationCal'] = df['precipitationCal'].fillna(0)
             path_csv = os.path.join(daily_csv_directory, f'{date_str}.csv')
             df.to_csv(path_csv)
-
+            print(f'=== {date_str}.csv saved ===')
             # Create and save the plot
             create_precipitation_plot(precipitation_dataset, date_str)
+
 
 # Function to clip data using California boundary
 def clip_california_data(nc_file_path):
@@ -148,11 +146,43 @@ file_list_monthly = glob.glob(os.path.join(monthly_data_directory, "*.nc4"))
 file_list_daily = glob.glob(os.path.join(daily_data_directory, "*.nc4"))
 
 # process monthly data
-process_precipitation_data(file_list_monthly, pro_monthly_data_directory, resolution='monthly')
+# process_precipitation_data(file_list_monthly, pro_monthly_data_directory, resolution='monthly')
 
 # process daily data
-process_precipitation_data(file_list_daily, pro_daily_data_directory, resolution='daily')
+#process_precipitation_data(file_list_daily, pro_daily_data_directory, resolution='daily')
+
+from datetime import datetime
 
 
+def annual_and_monthly_precipitation(monthly_csv_directory, csv_directory):
+    all_files = os.listdir(monthly_csv_directory)
+    monthly_precipitation_sums = {}
 
+    for file_name in all_files:
+        try:
+            year_month = datetime.strptime(file_name.split(".")[0], "%Y-%m")
+        except ValueError:
+            continue  # Skip files that don't match the date format
 
+        file_path = os.path.join(monthly_csv_directory, file_name)
+        precipitation_df = pd.read_csv(file_path)
+
+        # Sum precipitation for the month
+        month_key = year_month.strftime("%Y-%m")
+        monthly_precipitation_sums[month_key] = monthly_precipitation_sums.get(month_key, 0) + precipitation_df[
+            'precipitation'].sum()
+
+    # Create DataFrame for monthly precipitation sums
+    monthly_precip_summary = pd.DataFrame(list(monthly_precipitation_sums.items()),
+                                          columns=['Month', 'Total Precipitation'])
+
+    # Create the CSV file path
+    monthly_csv_path = os.path.join(csv_directory, 'monthly_precipitation_summary.csv')
+
+    # Save the summary to a CSV file
+    monthly_precip_summary.to_csv(monthly_csv_path, index=False)
+
+    return monthly_csv_path
+
+# annual_and_monthly_precipitation(monthly_csv_directory, csv_directory)
+new_file_list_daily = glob.glob(os.path.join(pro_daily_data_directory, "*.nc4"))
