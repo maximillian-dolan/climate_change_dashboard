@@ -776,9 +776,6 @@ def predictive():
     # Stupid way to do it but for now is the only way to only have dates that have all date for currently 
     august_2015 = ['2015-08-01', '2015-08-02', '2015-08-03', '2015-08-04', '2015-08-05', '2015-08-06', '2015-08-07', '2015-08-08', '2015-08-09', '2015-08-10', '2015-08-11', '2015-08-12', '2015-08-13', '2015-08-14', '2015-08-15', '2015-08-16', '2015-08-17', '2015-08-18', '2015-08-19', '2015-08-20', '2015-08-21', '2015-08-22', '2015-08-23', '2015-08-24', '2015-08-25', '2015-08-26', '2015-08-27', '2015-08-28', '2015-08-29', '2015-08-30', '2015-08-31']
 
-    # Import classifier
-    rf_classifier = load('rf_classifier.joblib')
-
     # Create slider
     date_predictive = st.select_slider('Select a date', options=august_2015, key='predictive_slider')
     #list(set(temp_dataframes.keys()).intersection(precipitation_dates_predictive)
@@ -790,11 +787,11 @@ def predictive():
         predictor_type = st.radio(label = 'Which predictive model to use', options = ['Random Forest', 'Special Vector Machine'])
     
     # Import classifier
-    #if predictor_type == 'Random Forest':
-        #classifier = load('rf_classifier.joblib')
-    #elif predictor_type == 'Special Vector Machine':
-        #classifier = load('svc_classifier.joblib')
-    classifier = load('rf_classifier.joblib')
+    if predictor_type == 'Random Forest':
+        classifier = load('rf_classifier.joblib')
+    elif predictor_type == 'Special Vector Machine':
+        classifier = load('svc_classifier.joblib')
+    #classifier = load('rf_classifier.joblib')
 
     # Add precipitation dataframe
     precipitation_file_path_predictive = os.path.join(precipitation_folder_path_mv, f"{date_predictive}.csv")
@@ -866,13 +863,12 @@ def predictive():
                                             lon='longitude',
                                             size='probability_1',
                                             hover_name = 'probability_1',
-                                            color_discrete_sequence=['red']*len(df_total_predictive),
-                                            #range_color=(min(temp_all_data['temperature']), max(temp_all_data['temperature'])),
+                                            color_discrete_sequence=['orange']*len(df_total_predictive),
                                             mapbox_style='open-street-map',
                                             zoom=3.7,
                                             width = 500)
     
-        # Add fire data 
+    # Add fire data 
     if show_fires_predictive == True:
         predictive_fig.add_trace(px.scatter_mapbox(fire_df_predictive,
                                                     lat='latitude',
@@ -886,6 +882,7 @@ def predictive():
         st.plotly_chart(predictive_fig)
         #st.write(temp_dataframescs.keys())
         #st.write(precip_dates)
+        #st.write(df_total_predictive[df_total_predictive['probability_1']>0.1])
         #st.write(df_total_predictive)
 
 
