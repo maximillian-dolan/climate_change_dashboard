@@ -8,7 +8,7 @@ import cartopy.feature as cfeature
 
 # using MERRA-2 data
 
-data = Dataset('wind4.nc4',  mode='r')
+data = Dataset('../wind4.nc4',  mode='r')
 
 # longitude and latitude
 lons = data.variables['lon']
@@ -81,4 +81,4 @@ qv = plt.quiver(lon, lat, U10M_nans[0,:,:], V10M_nans[0,:,:], scale=420, color='
 
 # Save the file
 ## NEEDS TO BE CHANGED to work for lots of plots
-fig.savefig('MERRA2_10m_ws.png', format='png', dpi=120)
+fig.savefig('../MERRA2_10m_ws.png', format='png', dpi=120)
