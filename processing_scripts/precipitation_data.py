@@ -11,7 +11,7 @@ import geopandas as gpd
 from shapely.geometry import mapping
 
 # Cheak the path
-base_directory = "./precipitation_data"
+base_directory = "../precipitation_data"
 
 # Use os.path.join define all the path
 plots_directory = os.path.join(base_directory, ".plots")
