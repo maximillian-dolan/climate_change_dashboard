@@ -90,8 +90,7 @@ temp_all_data = pd.concat(temp_dataframes, ignore_index=True)
 # Import precipitation data (for multivariable plot)
 
 # set the folder path of csv file
-precipitation_base_directory_mv = "./precipitation_data"
-precipitation_folder_path_mv = f'./{precipitation_base_directory_mv}/.csv/daily'
+precipitation_folder_path_mv = './precipitation_data/.csv/daily'
 
 # get the list of files
 precipitation_file_pattern_mv = '%Y-%m-%d'

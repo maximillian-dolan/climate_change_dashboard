@@ -5,31 +5,9 @@ import plotly.express as px
 import os
 from datetime import datetime
 
-
-def lon_to_longitude(df):
-    '''
-    Simple function to add latitude and longitude columns if dataframe only contains columns labeled lon and lat
-    '''
-    if 'lon' in df.columns:
-        df['longitude'] = df['lon']
-    
-    if 'lat' in df.columns:
-        df['latitude'] = df['lat']
-
-def mv_rounder(df, feature):
-    '''
-    Simple function to round latitude and longitude to nearest 0.5, and drop duplicates (averaging value in feature between duplicates).
-    Note that latitude and longitude columns must be named 'latitude' and 'longitude' not 'lat' and 'lon'.
-    '''
-
-    if ('latitude' and 'longitude') in df.columns:
-        df['longitude'] = df['longitude'].apply(lambda x: round(x))
-        df['latitude'] = df['latitude'].apply(lambda x: round(x))
-        df = df.groupby(['latitude', 'longitude']).agg({feature: 'mean'}).reset_index()
-        
-        return df
-
 #-------------------------------------------------------------------
+st.set_page_config(layout="centered")
+
 # Importing fire data
 
 # CSV file names
@@ -41,7 +19,7 @@ fire_dataframes = {}
 for csv_file in csv_fire_files:
 
     year = int(csv_file.split('_')[2].split('.')[0])
-    
+
     whole_fire_df = pd.read_csv(os.path.join(fire_folder_path, csv_file))
     fire_dataframes[f'{year}'] = whole_fire_df[whole_fire_df['latitude'] < 42][whole_fire_df['latitude']>33][whole_fire_df['longitude']<-115]
 
@@ -66,63 +44,70 @@ for df in fire_dataframes:
 
 all_fire_frequencies = pd.concat(firecount_dataframes, ignore_index=True)
 
+
 def fire_page():
     st.header("Fire Occurence Data")
     st.write("data and visualizations")
 
-    #Create tabs for two plots
-    tab1, tab2 = st.tabs(['locations','frequency'])
+    # Create tabs for two plots
+    tab1, tab2, tab3 = st.tabs(['locations', 'frequency', 'information'])
 
-    #Create fire locations plot
+    # Create fire locations plot
     with tab1:
 
-        fire_data_type = st.radio('select data type',('monthly','yearly'))
+        fire_data_type = st.radio('select data type', ('monthly', 'yearly'))
 
         if fire_data_type == 'monthly':
-            fire_year = st.select_slider('year', options = fire_dataframes.keys())
+            fire_year = st.select_slider('year', options=sorted(fire_dataframes.keys(), key=lambda x: x.lower()))
             fire_df_chosen = fire_dataframes[fire_year]
 
         if fire_data_type == 'monthly':
-
             fig_fire = px.scatter_mapbox(fire_df_chosen,
-                                    lat='latitude',
-                                    lon='longitude',
-                                    color_discrete_sequence=['red']*len(fire_df),
-                                    mapbox_style='open-street-map',
-                                    zoom=3,
-                                    hover_name = 'confidence',
-                                    opacity = fire_df_chosen['confidence'],
-                                    animation_frame = 'month',
-                                    title=f'Fire locations')
+                                         lat='latitude',
+                                         lon='longitude',
+                                         color_discrete_sequence=['red'] * len(fire_df),
+                                         mapbox_style='open-street-map',
+                                         zoom=3,
+                                         hover_name='confidence',
+                                         opacity=fire_df_chosen['confidence'],
+                                         animation_frame='month',
+                                         title=f'Fire locations')
 
         if fire_data_type == 'yearly':
             fig_fire = px.scatter_mapbox(fire_all_data,
-                                    lat='latitude',
-                                    lon='longitude',
-                                    color_discrete_sequence=['red']*len(fire_df),
-                                    mapbox_style='open-street-map',
-                                    zoom=3,
-                                    hover_name = 'confidence',
-                                    opacity = fire_all_data['confidence'],
-                                    animation_frame = 'year',
-                                    title=f'Fire locations') 
-        
+                                         lat='latitude',
+                                         lon='longitude',
+                                         color_discrete_sequence=['red'] * len(fire_df),
+                                         mapbox_style='open-street-map',
+                                         zoom=3,
+                                         hover_name='confidence',
+                                         opacity=fire_all_data['confidence'],
+                                         animation_frame='year',
+                                         title=f'Fire locations')
+
         st.plotly_chart(fig_fire)
-        
+
     # Create fire frequency chart
-    fire_frequency_chart = px.bar(data_frame = all_fire_frequencies,
-                                        x = 'month names',
-                                        y = 'count',
-                                        hover_name = 'month names',
-                                        animation_frame  = 'year',
-                                        animation_group = 'month names',
-                                        range_y = [0,0.7],
-                                        color_discrete_sequence = ['red']*len(all_fire_frequencies))
+    fire_frequency_chart = px.bar(data_frame=all_fire_frequencies,
+                                  x='month names',
+                                  y='count',
+                                  hover_name='month names',
+                                  animation_frame='year',
+                                  animation_group='month names',
+                                  range_y=[0, 0.7],
+                                  color_discrete_sequence=['red'] * len(all_fire_frequencies))
 
     with tab2:
         st.plotly_chart(fire_frequency_chart)
 
-        
+    with tab3:
+        st.markdown("""
+
+        ## Why do we track wildfires?
+        Tracking Wildfire ocurrence is not only important actively for locating and fighting fire, but archiving the data helps to identify trends and at-risk areas. It also serves as a demonstration as to how climate change is affecting them.
+
+        """)
+
 
 # Main layout of the app
 def main():
