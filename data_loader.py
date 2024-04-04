@@ -150,6 +150,7 @@ def create_humidity_chart_bak():
     # create line graph
     fig = px.line(df_total_humidity_per_day, x='Date', y='Specific Humidity(kg/kg)', title='Specific Humidity')
     return fig
+
 @st.cache_data(show_spinner=False)
 def create_humidity_chart():
     humidity_data_path = './humidity_data/processed_data'
@@ -184,7 +185,7 @@ def create_humidity_chart():
         window=window_size).mean()
 
     # Chart
-    fig = px.line(df_daily_average_humidity, x='Date', y='Moving_Avg',
+    fig = px.scatter(df_daily_average_humidity, x='Date', y='Moving_Avg',
                   title='Average Specific Humidity')
     return fig
 @st.cache_data(show_spinner=False)
@@ -262,7 +263,7 @@ def create_temperature_chart():
     df_daily_average_temperature['Moving_Avg'] = df_daily_average_temperature['AvgSurfT_tavg'].rolling(
         window=window_size).mean()
     # Chart
-    fig = px.line(df_daily_average_temperature, x='Date', y='Moving_Avg',
+    fig = px.scatter(df_daily_average_temperature, x='Date', y='Moving_Avg',
                   title='Average Temperature')
     return fig
 

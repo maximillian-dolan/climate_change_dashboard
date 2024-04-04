@@ -43,7 +43,7 @@ def temperature_page():
     print(temp_dates)
 
     # Create page tabs
-    tab1, tab2, tab3 = st.tabs(['chart', 'stats', 'information'])
+    tab1, tab2, tab3 = st.tabs(['Plot', 'Scatter graph', 'Information'])
 
     with tab1:
         # Choose date to display

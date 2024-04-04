@@ -31,7 +31,7 @@ def humidity_page():
     st.write("Explore Humidity Data")
 
 
-    tab1, tab2, tab3 = st.tabs(['Plot', 'Line graph', 'Information'])
+    tab1, tab2, tab3 = st.tabs(['Plot', 'Scatter graph', 'Information'])
     with tab1:
         humidity_data_type = st.radio("Select Data Type", ('Daily',))
 

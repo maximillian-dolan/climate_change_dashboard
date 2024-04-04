@@ -174,7 +174,7 @@ def home_page():
                         st.plotly_chart(fig, use_container_width=True)
 
                 with col:
-                    factor_page_link = f"pages/{factor.lower()}.py"
+                    factor_page_link = f"pages/{factor}.py"
                     st.page_link(page=factor_page_link, label=f"Go to {factor} details", icon="🏠")
                     st.write(f"**Data Source:** {factor_descriptions[factor]['data_source']}")
                     st.write(f"**Trend Description:** {factor_descriptions[factor]['trend_description']}")
@@ -189,7 +189,7 @@ def home_page():
         fig = charts[factor_fire]()
     with col_fire:
         st.plotly_chart(fig, use_container_width=True)
-        factor_page_link = f"pages/{factor_fire.lower()}.py"
+        factor_page_link = f"pages/{factor_fire}.py"
         st.page_link(page=factor_page_link, label=f"Go to {factor_fire} details", icon="🏠")
         st.write(f"**Trend Description:** {factor_descriptions[factor_fire]['trend_description']}")
     with col_mul:

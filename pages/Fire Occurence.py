@@ -50,7 +50,7 @@ def fire_page():
     st.write("data and visualizations")
 
     # Create tabs for two plots
-    tab1, tab2, tab3 = st.tabs(['locations', 'frequency', 'information'])
+    tab1, tab2, tab3 = st.tabs(['Locations', 'Frequency', 'Information'])
 
     # Create fire locations plot
     with tab1:
