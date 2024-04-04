@@ -7,7 +7,7 @@ from shapely.geometry import mapping
 
 # Setup input and output directories
 input_folder_path = './humidity_data/raw_data/'
-output_folder_path = './humidity/processed_data/'
+output_folder_path = '../humidity/processed_data/'
 california_boundary_file = 'California_County_Boundaries.geojson'
 
 # Load California boundary geometry using geopandas
