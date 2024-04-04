@@ -21,7 +21,7 @@ The project is organized into the following directories and files:
 ## Usage
 To run the dashboard locally, clone the repository and set up the environment using the provided `environment_v1.0.yml` file. After activating the environment, navigate to the root directory and run:
 ~~~
-$streamlit run Home.py
+$ streamlit run Home.py
 ~~~
 
 ## Data source
