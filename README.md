@@ -20,7 +20,9 @@ The project is organized into the following directories and files:
  
 ## Usage
 To run the dashboard locally, clone the repository and set up the environment using the provided `environment_v1.0.yml` file. After activating the environment, navigate to the root directory and run:
-streamlit run Home.py
+~~~
+$ streamlit run Home.py
+~~~
 
 ## Data source
 - `California_County_Boundaries.geojson`: https://gis.data.ca.gov/datasets/8713ced9b78a4abb97dc130a691a8695/explore?location=36.894820%2C-119.002032%2C6.53
