@@ -14,8 +14,8 @@ import geopandas as gpd
 from shapely.geometry import mapping
 
 # Load the NetCDF file
-input_folder_path = './temperature_data/raw'
-output_folder_path = './temperature_data/processed/'
+input_folder_path = '../temperature_data/raw'
+output_folder_path = '../temperature_data/processed/'
 california_boundary_file = "California_County_Boundaries.geojson"
 
 nc4_files = [file for file in os.listdir(input_folder_path) if file.endswith('.nc4')]
