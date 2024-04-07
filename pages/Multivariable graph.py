@@ -117,7 +117,7 @@ def multivariable_graph():
     multivariable_fig = px.scatter_mapbox(df_total_mv,
                                           lat='latitude',
                                           lon='longitude',
-                                          size=size_mv,
+                                          size=size_mv if size_mv != 'temperature' else df_total_mv['temperature']+273.15, #fixes error trying to set size to negative value
                                           hover_name=size_mv,
                                           color=color_mv,
                                           color_continuous_scale=px.colors.sequential.thermal,
