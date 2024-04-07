@@ -6,7 +6,7 @@ import os
 from datetime import datetime
 from PIL import Image
 from joblib import load
-from sklearn.preprocessing import scale, StandardScaler
+#from sklearn.preprocessing import scale, StandardScaler
 
 
 #-------------------------------------------------------------------
