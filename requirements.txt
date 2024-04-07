@@ -4,4 +4,4 @@ numpy
 plotly
 joblib
 scikit-learn
-sklearn
+sklearn.preprocessing
