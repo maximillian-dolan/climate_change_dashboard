@@ -7,3 +7,4 @@ scikit-learn
 sklearn.preprocessing
 matplotlib
 cartopy
+pyhdf
