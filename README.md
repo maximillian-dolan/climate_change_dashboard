@@ -18,6 +18,7 @@ The project is organized into the following directories and files:
 - `ML_dataframe.csv`: The machine learning data frame used for analysis.
 - `environment_v1.0.yml`: The conda environment file with all required dependencies. （This one may still need updating）
 - `data_loader.py`: Some Data Functions and Chart Functions.
+- `requierments.txt`: List of dependencies used by streamlit deploy service
  
 ## Usage
 To run the dashboard locally, clone the repository and set up the environment using the provided `environment_v1.0.yml` file. After activating the environment, navigate to the root directory and run:
