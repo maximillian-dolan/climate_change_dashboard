@@ -26,5 +26,7 @@ To run the dashboard locally, clone the repository and set up the environment us
 $ streamlit run Home.py
 ~~~
 
+Or alternatively, access remotely [here](https://climatechangedashboard.streamlit.app)
+
 ## Data source
 - `California_County_Boundaries.geojson`: https://gis.data.ca.gov/datasets/8713ced9b78a4abb97dc130a691a8695/explore?location=36.894820%2C-119.002032%2C6.53
