@@ -48,7 +48,7 @@ def load_and_process_temperature_data():
 
         temp_df = pd.read_csv(os.path.join(temp_folder_path, csv_file))
         temp_df.dropna(inplace = True) # Drops all points not within California
-        temp_df['temperature'] = temp_df['AvgSurfT_tavg'] - 273.15 # Convert from kelvin to celsius
+        temp_df['temperature'] = temp_df['AvgSurfT_tavg'] # Convert from kelvin to celsius
         temp_dataframes[f'{date}'] = temp_df
 
     temp_all_data = pd.concat(temp_dataframes, ignore_index=True)
