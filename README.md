@@ -21,7 +21,12 @@ The project is organized into the following directories and files:
 - `requirements.txt`: List of dependencies used by streamlit deploy service.
  
 ## Usage
-To run the dashboard locally, clone the repository and set up the environment using the provided `environment_v1.0.yml` file. After activating the environment, navigate to the root directory and run:
+To run the dashboard locally: clone the repository, set up, and activate the environment using the provided `environment_v1.0.yml` file:
+~~~
+$ conda env create -f environment_v1.0.yml
+$ conda activate new_env
+~~~
+After activating the environment, navigate to the root directory and run:
 ~~~
 $ streamlit run Home.py
 ~~~
