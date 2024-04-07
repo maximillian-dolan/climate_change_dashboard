@@ -35,7 +35,7 @@ def aerosol_page():
         show_fires = st.checkbox(label='Show Fire Data')
 
         # Set the folder path of HDF file
-        aerosol_folder_path = "./aerosol_data/raw_data"
+        aerosol_folder_path = "./Aerosol_data/raw_data"
 
         # Get the list of dates from the file names
         aerosol_dates = [datetime.strptime(f.split('.')[0], '%Y-%m-%d') for f in os.listdir(aerosol_folder_path) if f.endswith('.hdf')]
