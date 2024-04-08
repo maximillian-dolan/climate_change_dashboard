@@ -54,6 +54,7 @@ for date_str, files in files_by_date.items():
     
     # Convert to DataFrame
     df = daily_mean_humidity.to_dataframe().reset_index()
+    df.fillna(0, inplace=True)
     
     # Save to CSV
     formatted_date = pd.to_datetime(date_str).strftime('%Y-%m-%d')
