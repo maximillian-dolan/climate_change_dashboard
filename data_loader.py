@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from PIL import Image
 from joblib import load
 #from sklearn.preprocessing import scale, StandardScaler
@@ -353,7 +353,16 @@ def create_wind_chart():
     fig = px.line(df_daily_average_wind, x='Date', y='Moving_Avg',
                   title='Average Wind Speed')
     return fig
-
+#--------------------------------------------------------------------
+# Function that generates list of dates 
+def generate_dates(start_year, end_year):
+    dates = []
+    current_date = datetime(start_year, 1, 1)
+    end_date = datetime(end_year + 1, 1, 1)
+    while current_date < end_date:
+        dates.append(current_date.strftime('%Y-%m-%d'))
+        current_date += timedelta(days=1)
+    return dates
 
 
 
