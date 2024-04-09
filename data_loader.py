@@ -355,11 +355,12 @@ def create_wind_chart():
     return fig
 #--------------------------------------------------------------------
 # Function that generates list of dates 
-def generate_dates(start_year, end_year):
+def generate_dates(start_date_str, end_date_str):
+    start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+    end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
     dates = []
-    current_date = datetime(start_year, 1, 1)
-    end_date = datetime(end_year + 1, 1, 1)
-    while current_date < end_date:
+    current_date = start_date
+    while current_date <= end_date:
         dates.append(current_date.strftime('%Y-%m-%d'))
         current_date += timedelta(days=1)
     return dates
