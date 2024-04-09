@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import os
+from data_loader import generate_dates
 
 st.set_page_config(layout="centered")
 
@@ -43,7 +44,7 @@ def multivariable_graph():
     st.header('Multivariable visualisation')
 
     # Create slider
-    date_mv = st.select_slider('Select a date', options=sorted(temp_dataframes.keys(), key=lambda x: x.lower()),
+    date_mv = st.select_slider('Select a date', options=generate_dates(2010,2022),
                                key='mv_slider')
 
     data_options = []
