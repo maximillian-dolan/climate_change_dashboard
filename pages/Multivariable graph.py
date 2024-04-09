@@ -130,7 +130,7 @@ def multivariable_graph():
                                           width=500)
 
     # Add fire data
-    if show_fires_mv == True:
+    if show_fires_mv == True and len(fire_df_mv) != 0:
         multivariable_fig.add_trace(px.scatter_mapbox(fire_df_mv,
                                                       lat='latitude',
                                                       lon='longitude',
