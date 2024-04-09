@@ -50,15 +50,8 @@ fire_all_data, fire_dataframes = load_fire_data()
 def predictive():
     st.header('Predictive chart')
 
-    # Stupid way to do it but for now is the only way to only have dates that have all date for currently
-    august_2015 = ['2015-08-01', '2015-08-02', '2015-08-03', '2015-08-04', '2015-08-05', '2015-08-06', '2015-08-07',
-                   '2015-08-08', '2015-08-09', '2015-08-10', '2015-08-11', '2015-08-12', '2015-08-13', '2015-08-14',
-                   '2015-08-15', '2015-08-16', '2015-08-17', '2015-08-18', '2015-08-19', '2015-08-20', '2015-08-21',
-                   '2015-08-22', '2015-08-23', '2015-08-24', '2015-08-25', '2015-08-26', '2015-08-27', '2015-08-28',
-                   '2015-08-29', '2015-08-30', '2015-08-31']
-
     # Create slider
-    date_predictive = st.select_slider('Select a date', options=august_2015, key='predictive_slider')
+    date_predictive = st.select_slider('Select a date', options=common_dates, key='predictive_slider')
     # list(set(temp_dataframes.keys()).intersection(precipitation_dates_predictive)
 
     data_options = []
@@ -152,7 +145,7 @@ def predictive():
                                        width=500)
 
     # Add fire data
-    if show_fires_predictive == True:
+    if show_fires_predictive == True and len(fire_df_predictive) != 0:
         predictive_fig.add_trace(px.scatter_mapbox(fire_df_predictive,
                                                    lat='latitude',
                                                    lon='longitude',

@@ -44,7 +44,7 @@ def multivariable_graph():
     st.header('Multivariable visualisation')
 
     # Create slider
-    date_mv = st.select_slider('Select a date', options=generate_dates(2010,2022),
+    date_mv = st.select_slider('Select a date', options=generate_dates('2010-01-02','2023-12-31'),
                                key='mv_slider')
 
     data_options = []
@@ -105,11 +105,13 @@ def multivariable_graph():
         show_fires_mv = False
 
     # Merge dataframes into one dataframe
-    df_total_mv = pd.merge(humidity_df_mv, temp_df_mv, on=['latitude', 'longitude'])
-    if os.path.exists(
-            precipitation_file_path_mv):  # temporary fix for glitch in which data isnt there for precipitation 2010
+    df_total_mv = temp_df_mv # Temperature has data for every day
+    if os.path.exists(humidity_file_path_mv):
+        df_total_mv = pd.merge(humidity_df_mv, df_total_mv, on=['latitude', 'longitude'])
+    if os.path.exists(precipitation_file_path_mv):
         df_total_mv = pd.merge(df_total_mv, precipitation_df_mv, on=['latitude', 'longitude'])
-    df_total_mv = pd.merge(df_total_mv, wind_df_mv, on=['latitude', 'longitude'])
+    if os.path.exists(wind_file_path_mv):
+        df_total_mv = pd.merge(df_total_mv, wind_df_mv, on=['latitude', 'longitude'])
 
     with col2:
         color_mv = st.selectbox(label='Color', options=data_options)
@@ -128,7 +130,7 @@ def multivariable_graph():
                                           width=500)
 
     # Add fire data
-    if show_fires_mv == True:
+    if show_fires_mv == True and len(fire_df_mv) != 0:
         multivariable_fig.add_trace(px.scatter_mapbox(fire_df_mv,
                                                       lat='latitude',
                                                       lon='longitude',
