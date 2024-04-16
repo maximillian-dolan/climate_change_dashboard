@@ -63,9 +63,9 @@ def predictive():
 
     # Import classifier
     if predictor_type == 'Random Forest':
-        classifier = load('rf_biased.joblib')
+        classifier = load('classifiers/rf_biased.joblib')
     elif predictor_type == 'Special Vector Machine':
-        classifier = load('svc_biased.joblib')
+        classifier = load('classifiers/svc_biased.joblib')
     # classifier = load('rf_classifier.joblib')
 
     # Add precipitation dataframe
