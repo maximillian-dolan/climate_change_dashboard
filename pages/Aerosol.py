@@ -65,7 +65,6 @@ def aerosol_page():
                         color='Optical_Depth_Land_And_Ocean',
                         color_continuous_scale=px.colors.sequential.Viridis,
                         labels={'Optical_Depth_Land_And_Ocean': 'Aerosol Depth'},
-                        size_max=15,
                         range_color=(optical_depth_min, optical_depth_max),
                         mapbox_style='open-street-map',
                         zoom=4,
