@@ -8,3 +8,4 @@ sklearn.preprocessing
 matplotlib
 cartopy
 pyhdf
+geopandas
