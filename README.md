@@ -1,7 +1,7 @@
 # California Wildfire and Climate Data Dashboard
 
 ## Overview
-This repository contains the code and data for the California Wildfire and Climate Data Exploration Dashboard. This dashboard allows users to interact with and visualize a wide range of environmental data related to the California region, including information on precipitation, temperature, wind speed, and humidity.
+This repository contains the code and data for the California Wildfire and Climate Data Exploration Dashboard. This dashboard allows users to interact with and visualize a wide range of environmental data related to the California region, including information on Aerosol, precipitation, temperature, wind speed, and humidity.
 
 ## Structure
 The project is organized into the following directories and files:
@@ -9,6 +9,7 @@ The project is organized into the following directories and files:
 - `USA_fire_date_2010_2023/`: Fire data from 2010 to 2023
 - `image/`: Logos and images used in the dashboard.
 - `pages/`: Individual Streamlit pages.
+- `Aerosol_data/`: Contains processed Aerosol data.
 - `humidity_data/`: Contains processed humidity data.
 - `precipitation_data/`: Contains processed precipitation data.
 - `temperature_data/`: Contains processed temperature data.
