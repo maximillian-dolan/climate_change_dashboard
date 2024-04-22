@@ -741,7 +741,7 @@ def aerosol_page():
 
     with tab2:
         st.markdown("""
-            ## Why is Aerosl data Important?
+            ## Why is Aerosol data Important?
             """)
 
 
@@ -983,7 +983,8 @@ def main():
         "Wind Speed": wind_page,
         "Fire Occurence": fire_page,
         "Multivariable graph" : multivariable_graph,
-        "Predictive Model": predictive
+        "Predictive Model": predictive,
+        "Aerosol": aerosol_page
         # Add other pages here
     }
 
