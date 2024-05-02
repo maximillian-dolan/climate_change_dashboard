@@ -77,7 +77,7 @@ def wind_page():
                     lon='lon',
                     size='Wind Speed (m/s)' if wind_data_type == 'daily' else 'wind',
                     color='Wind Speed (m/s)' if wind_data_type == 'daily' else 'wind',
-                    color_continuous_scale=px.colors.sequential.Viridis,
+                    color_continuous_scale=px.colors.sequential.Viridis_r,
                     range_color=(0.05, wind_color_scale_max),
                     mapbox_style='open-street-map',
                     zoom=4,
