@@ -114,6 +114,9 @@ def temperature_page():
         st.markdown("""
         ## Why is Temperature Data Important?
         Temperature is a key component of fire weather conditions. High temperatures can increase the likelihood and intensity of wildfires by drying out vegetation, making it more susceptible to ignition and rapid spread. Understanding temperature patterns helps forecasters and firefighters anticipate periods of heightened fire danger.
+        
+        ## Where does the data come from?
+        The temperature data was sourced from NASA's MERRA-2 data, which obtains data from various satellites. The data has a spatial resolution of 0.5 &deg; x 0.625 &deg; taken over hourly intervals.
         """)
 
 

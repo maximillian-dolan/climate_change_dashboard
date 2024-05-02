@@ -122,6 +122,10 @@ def wind_page():
     with tab3:
         st.markdown("""
             ## Why is Wind Data Important?
+            Stronger wind speeds can significantly enhance the rate at which fire spreads and can carry embers or flames across vast distances. This, in turn, can ignite new areas and cause fires to spread more rapidly than they would in the absence of wind. Additionally, wind amplifies the amount of oxygen available to the flames, intensifying the fire. Wind often accompanies low humidity, which can dry out vegetation, thereby making it more flammable. This increases the risk of ignition and sustaining a fire in such areas.
+            
+            ## Where does the data come from?
+            The wind data was sourced from NASA's MERRA-2 data, which obtains data from various satellites. The data has a spatial resolution of 0.5 &deg; x 0.625 &deg; taken over hourly intervals.
             """)
 
 

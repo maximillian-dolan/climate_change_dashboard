@@ -122,9 +122,10 @@ def humidity_page():
     with tab3:
         st.markdown("""
             ## Why is Humidity Data Important?
+            The minimum daily relative humidity plays a significant role in the occurrence of wildfires. This is because humidity levels directly affect the moisture content of vegetation. Higher humidity levels lead to an increase in the moisture content of fuels, which makes them less likely to ignite and burn. On the other hand, lower humidity levels cause vegetation to dry out, increasing the risk of fire ignition. Additionally, low humidity levels can intensify the spread of fires and make them spread faster. Humidity also interacts with temperature and wind to affect overall weather conditions, which in turn impacts fire behavior.
 
-
-            ## where does the data from？
+            ## Where does the data come from?
+            The humidity data was sourced from NASA's MERRA-2 data, which obtains data from various satellites. The data has a spatial resolution of 0.5 &deg; x 0.625 &deg; taken over hourly intervals.
             """)
 
 
