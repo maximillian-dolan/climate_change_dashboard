@@ -62,11 +62,12 @@ def wind_page():
             if os.path.exists(wind_file_path):
                 # Read csv file
                 wind_df = pd.read_csv(wind_file_path)
+                wind_df.rename(columns={'SPEEDLML': 'Wind Speed (m/s)'}, inplace=True)
 
                 # set the confidence level
                 wind_confidence_level = 0.95
                 wind_color_scale_max = wind_df[
-                    'SPEEDLML' if wind_data_type == 'daily' else 'wind'].quantile(
+                    'Wind Speed (m/s)' if wind_data_type == 'daily' else 'wind'].quantile(
                     wind_confidence_level)
 
                 # Create map
@@ -74,8 +75,8 @@ def wind_page():
                     wind_df,
                     lat='lat',
                     lon='lon',
-                    size='SPEEDLML' if wind_data_type == 'daily' else 'wind',
-                    color='SPEEDLML' if wind_data_type == 'daily' else 'wind',
+                    size='Wind Speed (m/s)' if wind_data_type == 'daily' else 'wind',
+                    color='Wind Speed (m/s)' if wind_data_type == 'daily' else 'wind',
                     color_continuous_scale=px.colors.sequential.Viridis,
                     range_color=(0.05, wind_color_scale_max),
                     mapbox_style='open-street-map',

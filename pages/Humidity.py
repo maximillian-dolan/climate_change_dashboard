@@ -20,8 +20,7 @@ def load_fire_data(selected_date, fire_folder_path='./USA_fire_date_2010_2023'):
     if os.path.exists(fire_file_path):
         fire_df = pd.read_csv(fire_file_path)
         fire_df['acq_date'] = pd.to_datetime(fire_df['acq_date'])
-        return fire_df[(fire_df['latitude'] < 42) & (fire_df['latitude'] > 33) & (fire_df['longitude'] < -115) & (
-                    fire_df['acq_date'] == selected_date)]
+        return fire_df[fire_df['acq_date'] == selected_date]
     else:
         return pd.DataFrame()
 
@@ -63,20 +62,21 @@ def humidity_page():
             if os.path.exists(humidity_file_path):
                 # Read csv file
                 humidity_df = pd.read_csv(humidity_file_path)
+                humidity_df.rename(columns={'Qair_f_inst': 'Humidity (kg/kg)'}, inplace=True)
 
                 # Set the confidence level
                 humidity_confidence_level = 0.95
-                humidity_color_scale_max = humidity_df['Qair_f_inst'].quantile(humidity_confidence_level)
+                humidity_color_scale_max = humidity_df['Humidity (kg/kg)'].quantile(humidity_confidence_level)
 
                 # Create map
                 fig_humidity = px.scatter_mapbox(
                     humidity_df,
                     lat='lat',
                     lon='lon',
-                    size='Qair_f_inst',
-                    color='Qair_f_inst',
+                    size='Humidity (kg/kg)',
+                    color='Humidity (kg/kg)',
                     color_continuous_scale=px.colors.sequential.Viridis,
-                    range_color=(humidity_df['Qair_f_inst'].min(), humidity_color_scale_max),
+                    range_color=(humidity_df['Humidity (kg/kg)'].min(), humidity_color_scale_max),
                     mapbox_style='open-street-map',
                     zoom=5,
                     title=f'Humidity for {date_str}'

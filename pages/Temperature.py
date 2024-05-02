@@ -65,15 +65,16 @@ def temperature_page():
         temp_file_path = os.path.join(temp_data_folder, f"{date_str}.csv")
         if os.path.exists(temp_file_path):
             temp_df_for_date = pd.read_csv(temp_file_path)
+            temp_df_for_date.rename(columns={'AvgSurfT_tavg': 'Temperature (celsius)'}, inplace=True)
 
         # Create map
         fig_temperature = px.scatter_mapbox(
             temp_df_for_date,
             lat='lat',
             lon='lon',
-            color='AvgSurfT_tavg',
+            color='Temperature (celsius)',
             color_continuous_scale=px.colors.sequential.thermal,
-            range_color=(temp_df_for_date['AvgSurfT_tavg'].min(), temp_df_for_date['AvgSurfT_tavg'].max()),
+            range_color=(temp_df_for_date['Temperature (celsius)'].min(), temp_df_for_date['Temperature (celsius)'].max()),
             mapbox_style='open-street-map',
             zoom=3.7,
             title=f'Temperature for {selected_date_temp.strftime("%Y")}'

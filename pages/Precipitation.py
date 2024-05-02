@@ -38,6 +38,7 @@ def precipitation_page():
                                f.endswith('.csv')]
         precipitation_dates = [datetime.strptime(date, precipitation_file_pattern) for date in precipitation_dates]
         precipitation_dates.sort()
+       
         # Create slider
         selected_date = st.select_slider(
             'Select a date',
@@ -60,20 +61,20 @@ def precipitation_page():
             if os.path.exists(precipitation_file_path):
                 # Read csv file
                 precipitation_df = pd.read_csv(precipitation_file_path)
+                precipitation_df.rename(columns={'precipitationCal': 'Precipitation (mm)'}, inplace=True)
 
                 # set the confidence level
                 precipitation_confidence_level = 0.95
                 precipitation_color_scale_max = precipitation_df[
-                    'precipitationCal' if precipitation_data_type == 'daily' else 'precipitation'].quantile(
+                    'Precipitation (mm)' if precipitation_data_type == 'daily' else 'precipitation'].quantile(
                     precipitation_confidence_level)
 
                 # Create map
-
                 fig_precipitation = px.density_mapbox(
                     precipitation_df,
                     lat='lat',
                     lon='lon',
-                    z='precipitationCal' if precipitation_data_type == 'daily' else 'precipitation',
+                    z='Precipitation (mm)' if precipitation_data_type == 'daily' else 'precipitation',
                     radius=5,
                     color_continuous_scale=px.colors.sequential.Viridis,
                     mapbox_style='open-street-map',
