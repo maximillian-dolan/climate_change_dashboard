@@ -59,7 +59,7 @@ def predictive():
 
     with col2:
         predictor_type = st.radio(label='Which predictive model to use',
-                                  options=['Random Forest', 'Special Vector Machine'])
+                                  options=['Special Vector Machine', 'Random Forest'])
 
     # Import classifier
     if predictor_type == 'Random Forest':
