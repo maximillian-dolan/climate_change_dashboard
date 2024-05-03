@@ -27,7 +27,7 @@ To run the dashboard locally: clone the repository, set up, and activate the env
 $ conda env create -f environment_v1.0.yml
 $ conda activate new_env
 ~~~
-After activating the environment, navigate to the root directory and run:
+After activating the environment, run:
 ~~~
 $ streamlit run Home.py
 ~~~
