@@ -80,7 +80,7 @@ def wind_page():
                     color_continuous_scale=px.colors.sequential.Viridis_r,
                     range_color=(0.05, wind_color_scale_max),
                     mapbox_style='open-street-map',
-                    zoom=4,
+                    zoom=3.7,
                     title=f'Wind for {date_str}'
                 )
 
