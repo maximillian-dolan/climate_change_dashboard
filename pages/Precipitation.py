@@ -78,7 +78,7 @@ def precipitation_page():
                     radius=5,
                     color_continuous_scale=px.colors.sequential.Viridis,
                     mapbox_style='open-street-map',
-                    zoom=4,
+                    zoom=3.7,
                     title=f'Precipitation Heatmap for {date_str}'
                 )
 
