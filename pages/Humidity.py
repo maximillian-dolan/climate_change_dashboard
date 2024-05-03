@@ -78,7 +78,7 @@ def humidity_page():
                     color_continuous_scale=px.colors.sequential.Viridis,
                     range_color=(humidity_df['Humidity (kg/kg)'].min(), humidity_color_scale_max),
                     mapbox_style='open-street-map',
-                    zoom=5,
+                    zoom=3.7,
                     title=f'Humidity for {date_str}'
                 )
 
