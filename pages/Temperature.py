@@ -40,7 +40,7 @@ def temperature_page():
         f.endswith('.csv')
     ]
     temp_dates.sort()
-    print(temp_dates)
+    #print(temp_dates)
 
     # Create page tabs
     tab1, tab2, tab3 = st.tabs(['Plot', 'Scatter graph', 'Information'])
