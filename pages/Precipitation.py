@@ -135,7 +135,7 @@ def precipitation_page():
         precipitation_file_path = "precipitation_data/.csv/monthly_precipitation_summary.csv"
         monthly_precipitation_df = pd.read_csv(precipitation_file_path)
         fig_monthly = px.line(monthly_precipitation_df, x='Month', y='Total Precipitation')
-        fig_monthly.update_layout(yaxis_title='Total Precipitation', xaxis_title='Month')
+        fig_monthly.update_layout(yaxis_title='Total Precipitation (mm)', xaxis_title='Month')
         st.plotly_chart(fig_monthly)
 
     with tab3:
