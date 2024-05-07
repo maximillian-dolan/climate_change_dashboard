@@ -246,7 +246,7 @@ def create_temperature_chart():
             date_key = year_month_day.strftime("%Y-%m-%d")
             if date_key not in daily_temperatures:
                 daily_temperatures[date_key] = []
-            daily_temperatures[date_key].extend(temperature_df['Average Temperature (celsius)'].tolist())
+            daily_temperatures[date_key].extend(temperature_df['AvgSurfT_tavg'].tolist())
         except ValueError:
             continue  # Skip files that don't match the date format
         except pd.errors.EmptyDataError:
@@ -258,14 +258,14 @@ def create_temperature_chart():
 
     # Create DataFrame for daily average temperatures
     df_daily_average_temperature = pd.DataFrame(list(daily_average_temperatures.items()),
-                                                columns=['Date', 'Average Temperature (celsius)'])
+                                                columns=['Date', 'AvgSurfT_tavg'])
     # Set the window size for the moving average, here assumed to be 30 days.
     window_size = 30
     # Calculate the moving average.
-    df_daily_average_temperature['Average Surface Temperature (celsius)'] = df_daily_average_temperature['Average Temperature (celsius)'].rolling(
+    df_daily_average_temperature['Average Temperature (celsius)'] = df_daily_average_temperature['AvgSurfT_tavg'].rolling(
         window=window_size).mean()
     # Chart
-    fig = px.scatter(df_daily_average_temperature, x='Date', y='Average Surface Temperature (celsius)',
+    fig = px.scatter(df_daily_average_temperature, x='Date', y='Average Temperature (celsius)',
                   title='Average Temperature')
     return fig
 
