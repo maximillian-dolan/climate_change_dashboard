@@ -15,6 +15,7 @@ The project is organized into the following directories and files:
 - `temperature_data/`: Contains processed temperature data.
 - `wind_data/`: Contains processed wind data.
 - `processing_scripts/`: Contains processing scripts.
+- `Legacy/`: Contains legacy scripts not used in final dashboard
 - `California_County_Boundaries.geojson`: California_County_Boundaries.
 - `ML_dataframe.csv`: The machine learning data frame used for analysis.
 - `environment_v1.0.yml`: The conda environment file with all required dependencies. （This one may still need updating）
