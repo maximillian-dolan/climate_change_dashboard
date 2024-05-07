@@ -125,7 +125,8 @@ def find_common_dates_from_datasets():
 def create_precipitation_chart():
     precipitation_file_path = "precipitation_data/.csv/monthly_precipitation_summary.csv"
     precipitation_df = pd.read_csv(precipitation_file_path)
-    fig = px.line(precipitation_df, x='Month', y='Total Precipitation', title='Monthly Total Precipitation')
+    precipitation_df.rename(columns={'Total Precipitation': 'Total Precipitation (mm)'}, inplace=True)
+    fig = px.line(precipitation_df, x='Month', y='Total Precipitation (mm)', title='Monthly Total Precipitation')
     return fig
 
 @st.cache_data(show_spinner=False)
@@ -181,13 +182,14 @@ def create_humidity_chart():
     # Set the window size for the moving average, here assumed to be 30 days.
     window_size = 30
     # Calculate the moving average.
-    df_daily_average_humidity['Moving_Avg'] = df_daily_average_humidity['Specific Humidity(kg/kg)'].rolling(
+    df_daily_average_humidity['Average Specific Humidity(kg/kg)'] = df_daily_average_humidity['Specific Humidity(kg/kg)'].rolling(
         window=window_size).mean()
 
     # Chart
-    fig = px.scatter(df_daily_average_humidity, x='Date', y='Moving_Avg',
+    fig = px.scatter(df_daily_average_humidity, x='Date', y='Average Specific Humidity(kg/kg)',
                   title='Average Specific Humidity')
     return fig
+    
 @st.cache_data(show_spinner=False)
 def create_temperature_chart_average():
     temperature_data_path = './temperature_data/processed'
@@ -216,7 +218,7 @@ def create_temperature_chart_average():
 
     # Create DataFrame for daily average temperatures
     df_daily_average_temperature = pd.DataFrame(list(daily_average_temperatures.items()),
-                                                columns=['Date', 'AvgSurfT_tavg'])
+                                                columns=['Date', 'Average Temperature (celsius)'])
 
     # Sort DataFrame by Date to ensure the line graph is chronological
     df_daily_average_temperature['Date'] = pd.to_datetime(df_daily_average_temperature['Date'])
@@ -224,7 +226,7 @@ def create_temperature_chart_average():
 
 
     # Create line graph
-    fig = px.line(df_daily_average_temperature, x='Date', y='AvgSurfT_tavg',
+    fig = px.line(df_daily_average_temperature, x='Date', y='Average Temperature (celsius)',
                   title='Daily Average Temperature over Time')
     return fig
 
@@ -244,7 +246,7 @@ def create_temperature_chart():
             date_key = year_month_day.strftime("%Y-%m-%d")
             if date_key not in daily_temperatures:
                 daily_temperatures[date_key] = []
-            daily_temperatures[date_key].extend(temperature_df['AvgSurfT_tavg'].tolist())
+            daily_temperatures[date_key].extend(temperature_df['Average Temperature (celsius)'].tolist())
         except ValueError:
             continue  # Skip files that don't match the date format
         except pd.errors.EmptyDataError:
@@ -256,14 +258,14 @@ def create_temperature_chart():
 
     # Create DataFrame for daily average temperatures
     df_daily_average_temperature = pd.DataFrame(list(daily_average_temperatures.items()),
-                                                columns=['Date', 'AvgSurfT_tavg'])
+                                                columns=['Date', 'Average Temperature (celsius)'])
     # Set the window size for the moving average, here assumed to be 30 days.
     window_size = 30
     # Calculate the moving average.
-    df_daily_average_temperature['Moving_Avg'] = df_daily_average_temperature['AvgSurfT_tavg'].rolling(
+    df_daily_average_temperature['Average Surface Temperature (celsius)'] = df_daily_average_temperature['Average Temperature (celsius)'].rolling(
         window=window_size).mean()
     # Chart
-    fig = px.scatter(df_daily_average_temperature, x='Date', y='Moving_Avg',
+    fig = px.scatter(df_daily_average_temperature, x='Date', y='Average Surface Temperature (celsius)',
                   title='Average Temperature')
     return fig
 
@@ -346,11 +348,11 @@ def create_wind_chart():
     # Set the window size for the moving average, here assumed to be 30 days.
     window_size = 30
     # Calculate the moving average for wind speed
-    df_daily_average_wind['Moving_Avg'] = df_daily_average_wind['AverageWindSpeed'].rolling(
+    df_daily_average_wind['Average Wind Speed (m/s)'] = df_daily_average_wind['AverageWindSpeed'].rolling(
         window=window_size).mean()
 
     # Create line graph for the moving average of wind speed
-    fig = px.line(df_daily_average_wind, x='Date', y='Moving_Avg',
+    fig = px.line(df_daily_average_wind, x='Date', y='Average Wind Speed (m/s)',
                   title='Average Wind Speed')
     return fig
 #--------------------------------------------------------------------
