@@ -99,7 +99,7 @@ def humidity_page():
                             title='Fire locations'
                         ).data[0])
                     else:
-                        st.warning(f"No fire data available for {date_str}.")
+                        st.warning(f"No fire on {date_str}.")
 
             # Show the plot
             st.plotly_chart(fig_humidity)
