@@ -121,13 +121,45 @@ def find_common_dates_from_datasets():
     return common_dates
 #--------------------------------------------------------------------
 # Generate chart
+
 @st.cache_data(show_spinner=False)
 def create_precipitation_chart():
-    precipitation_file_path = "precipitation_data/.csv/monthly_precipitation_summary.csv"
-    precipitation_df = pd.read_csv(precipitation_file_path)
-    precipitation_df.rename(columns={'Total Precipitation': 'Total Precipitation (mm)'}, inplace=True)
-    fig = px.line(precipitation_df, x='Month', y='Total Precipitation (mm)', title='Monthly Total Precipitation')
+    precipitation_data_path = './precipitation_data/.csv/monthly'
+    all_precipitation_files = os.listdir(precipitation_data_path)
+    monthly_precipitation = {}
+
+    for file_name in all_precipitation_files:
+        try:
+            year_month = datetime.strptime(file_name.split(".")[0], "%Y-%m").strftime("%Y-%m")
+            file_path = os.path.join(precipitation_data_path, file_name)
+            precipitation_df = pd.read_csv(file_path)
+
+            # Collect monthly precipitation totals
+            if year_month not in monthly_precipitation:
+                monthly_precipitation[year_month] = []
+            monthly_precipitation[year_month].append(precipitation_df['precipitation'].sum())
+        except ValueError:
+            continue  # Skip files that don't match the date format
+        except pd.errors.EmptyDataError:
+            print(f"Warning: Skipping empty or invalid file {file_name}")
+            continue
+
+    # Calculate total precipitation for each month
+    total_precipitation_per_month = {month: sum(precip) for month, precip in monthly_precipitation.items()}
+
+    # Create DataFrame for monthly total precipitation
+    df_monthly_total_precipitation = pd.DataFrame(list(total_precipitation_per_month.items()),
+                                                  columns=['Month', 'Total Precipitation (mm)'])
+
+    # Sort data by month
+    df_monthly_total_precipitation.sort_values('Month', inplace=True)
+
+    # Chart
+    fig = px.line(df_monthly_total_precipitation, x='Month', y='Total Precipitation (mm)',
+                  title='Monthly Total Precipitation')
     return fig
+
+
 
 @st.cache_data(show_spinner=False)
 def create_humidity_chart_bak():
@@ -179,7 +211,7 @@ def create_humidity_chart():
     df_daily_average_humidity = pd.DataFrame(list(daily_average_humidities.items()),
                                              columns=['Date', 'Specific Humidity(kg/kg)'])
 
-    # Set the window size for the moving average, here assumed to be 30 days.
+    # Set the window size for the moving average.
     window_size = 30
     # Calculate the moving average.
     df_daily_average_humidity['Average Specific Humidity(kg/kg)'] = df_daily_average_humidity['Specific Humidity(kg/kg)'].rolling(
@@ -259,7 +291,7 @@ def create_temperature_chart():
     # Create DataFrame for daily average temperatures
     df_daily_average_temperature = pd.DataFrame(list(daily_average_temperatures.items()),
                                                 columns=['Date', 'AvgSurfT_tavg'])
-    # Set the window size for the moving average, here assumed to be 30 days.
+    # Set the window size for the moving average
     window_size = 30
     # Calculate the moving average.
     df_daily_average_temperature['Average Temperature (celsius)'] = df_daily_average_temperature['AvgSurfT_tavg'].rolling(
@@ -345,7 +377,7 @@ def create_wind_chart():
     df_daily_average_wind['Date'] = pd.to_datetime(df_daily_average_wind['Date'])
     df_daily_average_wind.sort_values('Date', inplace=True)
 
-    # Set the window size for the moving average, here assumed to be 30 days.
+    # Set the window size for the moving average
     window_size = 30
     # Calculate the moving average for wind speed
     df_daily_average_wind['Average Wind Speed (m/s)'] = df_daily_average_wind['AverageWindSpeed'].rolling(
