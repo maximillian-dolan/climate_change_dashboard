@@ -5,7 +5,7 @@ import plotly.express as px
 import os
 from datetime import datetime
 
-from data_loader import load_fire_data
+from data_loader import load_fire_data, create_precipitation_chart
 fire_all_data, fire_dataframes = load_fire_data()
 
 st.set_page_config(layout="centered")
@@ -100,7 +100,7 @@ def precipitation_page():
                                                                       ).data[0]
                                                     )
                     else:
-                        st.warning(f"No fire data available for {date_str}.")
+                        st.warning(f"No fire on {date_str}.")
                 # Show
                 st.plotly_chart(fig_precipitation)
                 # Download button
@@ -116,28 +116,10 @@ def precipitation_page():
                         )
                 else:
                     st.write("File not found.")
-                precipitation_plot_path = f'./{base_directory}/.plots/precipitation_{date_str}.png'
-                if os.path.exists(precipitation_plot_path):
-                    # Read file
-                    with open(precipitation_plot_path, "rb") as file:
-                        btn = st.download_button(
-                            label="Download Plot",
-                            data=file,
-                            file_name=f"precipitation_{date_str}.png",
-                            mime="image/png"
-                        )
-                else:
-                    st.write("Plot not found.")
 
     with tab2:
-        # Line graph
-        st.header("Monthly Precipitation Trends")
-        precipitation_file_path = "precipitation_data/.csv/monthly_precipitation_summary.csv"
-        monthly_precipitation_df = pd.read_csv(precipitation_file_path)
-        fig_monthly = px.line(monthly_precipitation_df, x='Month', y='Total Precipitation')
-        fig_monthly.update_layout(yaxis_title='Total Precipitation (mm)', xaxis_title='Month')
-        st.plotly_chart(fig_monthly)
-
+        fig_precipitation_chart = create_precipitation_chart()
+        st.plotly_chart(fig_precipitation_chart, use_container_width=True)
     with tab3:
         st.markdown("""
             ## Why is Precipitation Data Important?
