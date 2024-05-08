@@ -220,7 +220,7 @@ def home_page():
      If you upload a new data file, click that button to clear the cache.
        """)
     if st.button('Clear Cache'):
-        st.caching.clear_cache()
+        streamlit.legacy_caching.clear_cache()
         st.success('Cache cleared! Please rerun the app.')
 
 def main():
